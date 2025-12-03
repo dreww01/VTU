@@ -1,0 +1,109 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile – Nova VTU{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <div class="bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800
+               rounded-3xl p-6 sm:p-8 shadow-lg shadow-slate-900/5">
+        <h1 class="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-slate-50 mb-1">
+            Account profile
+        </h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+            Update your personal details used across Nova VTU.
+        </p>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+
+            <!-- Full name -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold uppercase text-slate-600 dark:text-slate-100">
+                    First Name
+                </label>
+                <input type="text" name="first_name" id="id_first_name" value="{{ form.instance.first_name }}" class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                  dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:ring-2 dark:text-slate-50
+                  focus:ring-brand-500">
+                {% if form.first_name.errors %}
+                <p class="text-xs text-red-500">{{ form.first_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-xs font-semibold uppercase text-slate-600 dark:text-slate-100">
+                    Last Name
+                </label>
+                <input type="text" name="last_name" id="id_last_name" value="{{ form.instance.last_name }}" class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 
+                  dark:border-slate-700 px-3 py-2.5 text-sm outline-none focus:ring-2 dark:text-slate-50
+                  focus:ring-brand-500">
+                {% if form.last_name.errors %}
+                <p class="text-xs text-red-500">{{ form.last_name.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+
+            <!-- Phone number -->
+            <div class="space-y-2">
+                <label for="id_phone_number"
+                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-100">
+                    Phone number
+                </label>
+                <input type="text" name="phone_number" id="id_phone_number"
+                    value="{{ form.instance.phone_number|default:'' }}" class="w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300
+                              dark:border-slate-700 px-3 py-2.5 text-sm text-slate-900 dark:text-slate-50
+                              outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                {% if form.phone_number.errors %}
+                <p class="text-xs text-red-500 mt-1">{{ form.phone_number.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Avatar upload -->
+            <div class="space-y-2">
+                <label for="id_avatar"
+                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                    Avatar (optional)
+                </label>
+
+                <div class="flex items-center gap-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-dashed
+               border-slate-300 dark:border-slate-700 px-3 py-2.5">
+                    <input type="file" name="avatar" id="id_avatar" accept="image/*" class="text-xs text-slate-600 dark:text-slate-300 file:mr-3
+                   file:rounded-lg file:border-0 file:bg-brand-600 file:px-3 file:py-1.5
+                   file:text-xs file:font-medium file:text-white
+                   hover:file:bg-brand-700 cursor-pointer">
+
+                    {% if form.instance.avatar %}
+                    <div class="flex items-center gap-2">
+                        <img src="{{ form.instance.avatar.url }}" alt="Current avatar"
+                            class="h-9 w-9 rounded-full object-cover border border-slate-300 dark:border-slate-700">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                            Current avatar
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Helper text -->
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Upload a clear JPG or PNG. Max size: <span class="font-medium">2MB</span>.
+                </p>
+
+                <!-- Error message -->
+                {% if form.avatar.errors %}
+                <p class="text-xs text-red-500 mt-1">
+                    {{ form.avatar.errors.0 }}
+                </p>
+                {% endif %}
+            </div>
+
+
+            <div class="pt-2 flex justify-end">
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium
+                               bg-brand-600 text-white hover:bg-brand-700
+                               shadow-sm shadow-brand-500/40 transition">
+                    <span>Save changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

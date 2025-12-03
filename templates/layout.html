@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Nova VTU{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                fontFamily: {
+                    sans: ['Inter', 'system-ui', 'ui-sans-serif', 'sans-serif'],
+                },
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef9ff',
+                            100: '#d7efff',
+                            200: '#b0e0ff',
+                            300: '#7ac9ff',
+                            400: '#3aa6ff',
+                            500: '#0b82ff',
+                            600: '#0064db',
+                            700: '#004fae',
+                            800: '#003a7e',
+                            900: '#002655',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Apply saved theme early to avoid flash -->
+    <script>
+            (function () {
+                try {
+                    const stored = localStorage.getItem('nova-theme');
+                    const prefersDark = window.matchMedia &&
+                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                    if (stored === 'dark' || (!stored || stored === 'system') && prefersDark) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                } catch (e) {
+                    // fail quietly
+                }
+            })();
+    </script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-screen font-sans">
+    <div
+        class="min-h-screen bg-slate-50 dark:bg-slate-950
+           bg-[radial-gradient(circle_at_top,_rgba(11,130,255,0.08),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(15,23,42,0.20),_transparent_55%)]">
+
+        <!-- Modal for success message -->
+        <div id="popup-modal"
+            class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center">
+            <div class="relative w-full max-w-sm mx-4 p-6 rounded-2xl
+                       bg-white/95 dark:bg-slate-900/95
+                       border border-slate-200/70 dark:border-slate-700/70
+                       shadow-2xl shadow-slate-900/40">
+                <div class="flex items-start gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full
+                               bg-emerald-100 text-emerald-700
+                               dark:bg-emerald-500/10 dark:text-emerald-300">
+                        <!-- Check icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5 animate-bounce"
+                            fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between gap-4 mb-1.5">
+                            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                                Success
+                            </h3>
+                            <button id="close-modal"
+                                class="text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" class="h-4 w-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="popup-message" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                            Your action was successful.
+                        </p>
+                        <div class="mt-4 flex justify-end">
+                            <button id="popup-close" class="inline-flex items-center rounded-xl px-3.5 py-1.5 text-xs font-medium
+                                           bg-brand-600 text-white hover:bg-brand-700
+                                           shadow-sm shadow-brand-500/40 transition">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="min-h-screen flex flex-col lg:flex-row" id="app-root">
+            <!-- Overlay for mobile drawer -->
+            <div id="drawer-backdrop" class="fixed inset-0 bg-black/40 z-30 hidden lg:hidden" onclick="closeDrawer()">
+            </div>
+
+            <!-- Side navigation (desktop) + drawer (mobile) -->
+            <aside id="side-drawer" class="fixed lg:static inset-y-0 left-0 z-40 w-72
+                      bg-white/95 dark:bg-slate-950/95 backdrop-blur
+                      border-r border-slate-200/80 dark:border-slate-900
+                      transform -translate-x-full lg:translate-x-0
+                      transition-transform duration-200 ease-out flex flex-col shadow-xl lg:shadow-none">
+                <!-- Brand header -->
+                <div
+                    class="px-4 lg:px-6 py-3 lg:py-5 border-b border-slate-200/80 dark:border-slate-900 flex items-center gap-3">
+                    <div
+                        class="h-9 w-9 rounded-2xl bg-gradient-to-br from-brand-500 to-slate-900 flex items-center justify-center shadow-lg shadow-brand-500/50 text-white">
+                        <span class="text-sm font-bold tracking-tight">VTU</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-semibold tracking-wide uppercase text-slate-900 dark:text-slate-100">
+                            Nova VTU
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                            Wallet & Utility Hub
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Navigation list -->
+                <nav class="flex-1 overflow-y-auto px-3 lg:px-5 py-4 text-sm space-y-6">
+                    <!-- Overview section -->
+                    <div>
+                        <p
+                            class="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-2">
+                            Overview
+                        </p>
+                        <a href="{% url 'dashboard' %}" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                              bg-slate-900 text-white dark:bg-slate-800
+                              shadow-sm shadow-slate-400/50 dark:shadow-slate-950/70
+                              border border-slate-900 dark:border-slate-700">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
+                                     bg-slate-800 text-slate-100 dark:bg-slate-900 text-[11px]">
+                                ▤
+                            </span>
+                            <span class="text-[13px] font-medium">Dashboard</span>
+                        </a>
+                    </div>
+
+                    <!-- VTU section -->
+                    <div class="space-y-1">
+                        <p
+                            class="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-1">
+                            VTU & Payments
+                        </p>
+
+                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                              text-slate-700 hover:bg-slate-100
+                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
+                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                ₦
+                            </span>
+                            <span class="text-[13px]">Fund wallet</span>
+                        </a>
+
+                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                              text-slate-700 hover:bg-slate-100
+                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
+                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                📶
+                            </span>
+                            <span class="text-[13px]">Airtime & Data</span>
+                        </a>
+
+                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                              text-slate-700 hover:bg-slate-100
+                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
+                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                💡
+                            </span>
+                            <span class="text-[13px]">Electricity & Bills</span>
+                        </a>
+                    </div>
+
+                    <!-- Profile section -->
+                    <div class="space-y-1">
+                        <p
+                            class="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-1">
+                            Account
+                        </p>
+
+                        <a href="{% url 'profile' %}" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
+                              text-slate-700 hover:bg-slate-100
+                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
+                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                👤
+                            </span>
+                            <span class="text-[13px]">Profile</span>
+                        </a>
+                    </div>
+
+                </nav>
+
+                <!-- Bottom section inside drawer/sidebar -->
+                <div
+                    class="border-t border-slate-200/80 dark:border-slate-900 px-4 lg:px-5 py-3 text-xs flex items-center justify-between">
+
+                    <div class="flex items-center gap-2">
+
+                        {% if request.user.profile.avatar %}
+                        <img src="{{ request.user.profile.avatar.url }}" class="h-8 w-8 rounded-full object-cover" />
+                        {% else %}
+                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700
+                                flex items-center justify-center text-[11px] font-semibold text-white">
+                            {{ request.user.username|first|upper }}
+                        </div>
+                        {% endif %}
+
+                        <div class="flex flex-col">
+                            <span class="text-slate-800 dark:text-slate-300 truncate max-w-[150px]">
+                                {{ request.user.profile.full_name|default:request.user.username }}
+                            </span>
+                            <span class="text-slate-500 dark:text-slate-500 text-[11px]">Account</span>
+                        </div>
+
+                    </div>
+
+                    <a href="{% url 'logout' %}" class="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5
+                          bg-red-50 text-red-600 hover:bg-red-100
+                          dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20
+                          text-[11px] transition">
+                        <span>⬅</span>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main column -->
+            <div class="flex-1 flex flex-col">
+                <!-- Top bar (mobile + desktop) -->
+                <header class="sticky top-0 z-20
+                       bg-white/80 border-b border-slate-200/80
+                       dark:bg-slate-950/90 dark:border-slate-900
+                       backdrop-blur px-4 sm:px-6 lg:px-8 py-3
+                       flex items-center justify-between lg:justify-end gap-3">
+                    <!-- Left: mobile burger + mini brand -->
+                    <div class="flex items-center gap-2 lg:hidden">
+                        <button type="button" class="inline-flex items-center justify-center rounded-xl border
+                               border-slate-300 bg-white p-2 text-slate-700
+                               hover:border-slate-400 hover:bg-slate-50
+                               dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200
+                               dark:hover:border-slate-500 dark:hover:bg-slate-800 transition" onclick="openDrawer()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                            </svg>
+                        </button>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold text-slate-900 dark:text-slate-100">Nova VTU</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-500 uppercase tracking-[0.18em]">
+                                Dashboard
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 ml-auto">
+                        <!-- Environment pill -->
+                        <div class="hidden md:flex items-center gap-2 mr-1">
+                            <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200
+                                   bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700
+                                   dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                                Live mode · NGN
+                            </span>
+                        </div>
+
+                        <!-- Theme toggle dropdown -->
+                        <div class="relative">
+                            <button type="button" id="theme-toggle-btn" onclick="toggleThemeMenu()" class="inline-flex items-center gap-2 rounded-full border
+                                   border-slate-200 bg-white px-2.5 py-1.5 text-xs
+                                   text-slate-700 hover:border-slate-300 hover:bg-slate-50
+                                   dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200
+                                   dark:hover:border-slate-500 dark:hover:bg-slate-800 transition">
+                                <span id="theme-toggle-icon" class="flex items-center justify-center h-5 w-5">
+                                    <!-- Icon will be injected by JS -->
+                                </span>
+                                <span class="hidden sm:inline-block" id="theme-toggle-label">Appearance</span>
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    class="h-3 w-3 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                                </svg>
+                            </button>
+
+                            <div id="theme-menu"
+                                class="hidden absolute right-0 mt-2 w-44 rounded-xl
+                                    bg-white border border-slate-200 shadow-lg
+                                    dark:bg-slate-900 dark:border-slate-700 dark:shadow-slate-950/70 overflow-hidden text-xs z-30">
+                                <!-- Light -->
+                                <button type="button" onclick="setTheme('light')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
+                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                    data-theme-option="light">
+                                    <span class="flex h-5 w-5 items-center justify-center">
+                                        <!-- Sun SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+                                            <circle cx="12" cy="12" r="4" class="fill-slate-400 dark:fill-slate-300" />
+                                            <g class="stroke-slate-400 dark:stroke-slate-300" stroke-width="1.5"
+                                                stroke-linecap="round">
+                                                <line x1="12" y1="2" x2="12" y2="5" />
+                                                <line x1="12" y1="19" x2="12" y2="22" />
+                                                <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" />
+                                                <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" />
+                                                <line x1="2" y1="12" x2="5" y2="12" />
+                                                <line x1="19" y1="12" x2="22" y2="12" />
+                                                <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" />
+                                                <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" />
+                                            </g>
+                                        </svg>
+                                    </span>
+                                    <span class="flex-1 text-left">Light</span>
+                                    <span class="hidden text-[10px] text-brand-600 dark:text-brand-300"
+                                        data-theme-checkmark="light">●</span>
+                                </button>
+
+                                <!-- Dark -->
+                                <button type="button" onclick="setTheme('dark')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
+                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                    data-theme-option="dark">
+                                    <span class="flex h-5 w-5 items-center justify-center">
+                                        <!-- Modern crescent Moon SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                            class="h-6 w-6 stroke-slate-700 dark:stroke-slate-200" fill="none"
+                                            stroke-width="1.6">
+                                            <path d="M21 12.79A9 9 0 1 1 11.21 3
+                                                     A7 7 0 0 0 21 12.79Z" />
+                                        </svg>
+                                    </span>
+                                    <span class="flex-1 text-left">Dark</span>
+                                    <span class="hidden text-[10px] text-brand-600 dark:text-brand-300"
+                                        data-theme-checkmark="dark">●</span>
+                                </button>
+
+                                <!-- System -->
+                                <button type="button" onclick="setTheme('system')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
+                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                    data-theme-option="system">
+                                    <span class="flex h-5 w-5 items-center justify-center">
+                                        <!-- Laptop SVG -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+                                            <rect x="4" y="5" width="16" height="10" rx="1.5"
+                                                class="fill-slate-200 dark:fill-slate-800 stroke-slate-500 dark:stroke-slate-400"
+                                                stroke-width="1.2" />
+                                            <rect x="3" y="16" width="18" height="2.5" rx="0.8"
+                                                class="fill-slate-300 dark:fill-slate-700" />
+                                        </svg>
+                                    </span>
+                                    <span class="flex-1 text-left">System default</span>
+                                    <span class="hidden text-[10px] text-brand-600 dark:text-brand-300"
+                                        data-theme-checkmark="system">●</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- User info -->
+                        <div class="hidden sm:flex flex-col items-end">
+                            <span class="text-xs text-slate-800 dark:text-slate-300 max-w-[160px] truncate">
+                                {{ request.user.username|default:"Guest" }}
+                            </span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-500">
+                                Logged in
+                            </span>
+                        </div>
+                        {% if request.user.profile.avatar %}
+                        <img onclick="window.location.href='{% url 'profile' %}'"
+                            src="{{ request.user.profile.avatar.url }}"
+                            class="h-8 w-8 rounded-full object-cover cursor-pointer">
+                        {% else %}
+                        <div onclick="window.location.href='{% url 'profile' %}'" class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700
+                                flex items-center justify-center text-[11px] font-semibold text-white cursor-pointer">
+                            {{ request.user.username|first|upper }}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </header>
+
+                <!-- Page content -->
+                <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10 pb-32 lg:pb-10">
+                    {# no global banner messages here; success is handled by popup #}
+
+                    {% block content %}{% endblock %}
+                </main>
+
+                <!-- Bottom nav (mobile only) -->
+                <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30
+                        rounded-t-3xl border-t border-slate-200 bg-white/95
+                        dark:border-slate-800 dark:bg-slate-900/95
+                        shadow-[0_-8px_30px_rgba(15,23,42,0.35)]">
+                    <div class="max-w-3xl mx-auto flex items-stretch justify-between px-3 py-1">
+                        <!-- Dashboard -->
+                        <a href="{% url 'dashboard' %}"
+                            class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div class="flex items-center justify-center h-7 w-7 rounded-full
+                                    bg-slate-900 text-white
+                                    dark:bg-slate-800 dark:text-slate-100">
+                                🏠
+                            </div>
+                            <span class="text-slate-900 dark:text-slate-200">Home</span>
+                        </a>
+
+                        <!-- Wallet -->
+                        <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div class="flex items-center justify-center h-7 w-7 rounded-full
+                                    bg-slate-100 text-slate-700
+                                    dark:bg-slate-800 dark:text-slate-100">
+                                ₦
+                            </div>
+                            <span class="text-slate-600 dark:text-slate-300">Wallet</span>
+                        </a>
+
+                        <!-- Central primary action -->
+                        <button class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div class="flex items-center justify-center h-10 w-10 rounded-full
+                                    bg-brand-500 text-white shadow-lg shadow-brand-500/40 -mt-5
+                                    border border-white dark:border-slate-900">
+                                ＋
+                            </div>
+                            <span class="text-brand-600 dark:text-brand-200">Fund</span>
+                        </button>
+
+                        <!-- VTU -->
+                        <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div class="flex items-center justify-center h-7 w-7 rounded-full
+                                    bg-slate-100 text-slate-700
+                                    dark:bg-slate-800 dark:text-slate-100">
+                                📶
+                            </div>
+                            <span class="text-slate-600 dark:text-slate-300">VTU</span>
+                        </a>
+
+                        <!-- Profile -->
+                        <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div class="flex items-center justify-center h-7 w-7 rounded-full
+                                    bg-slate-100 text-slate-700
+                                    dark:bg-slate-800 dark:text-slate-100">
+                                👤
+                            </div>
+                            <span class="text-slate-600 dark:text-slate-300">Profile</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDrawer() {
+            const drawer = document.getElementById('side-drawer');
+            const backdrop = document.getElementById('drawer-backdrop');
+            if (drawer && backdrop) {
+                drawer.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+            }
+        }
+
+        function closeDrawer() {
+            const drawer = document.getElementById('side-drawer');
+            const backdrop = document.getElementById('drawer-backdrop');
+            if (drawer && backdrop) {
+                drawer.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+            }
+        }
+
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            if (!menu) return;
+            menu.classList.toggle('hidden');
+        }
+
+        function closeThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            if (!menu) return;
+            menu.classList.add('hidden');
+        }
+
+        function setThemeIcon(mode) {
+            const iconContainer = document.getElementById('theme-toggle-icon');
+            if (!iconContainer) return;
+
+            let svg = '';
+
+            if (mode === 'light') {
+                svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+                    <circle cx="12" cy="12" r="4" class="fill-slate-400"/>
+                    <g class="stroke-slate-400" stroke-width="1.5" stroke-linecap="round">
+                        <line x1="12" y1="2" x2="12" y2="5"/>
+                        <line x1="12" y1="19" x2="12" y2="22"/>
+                        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+                        <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+                        <line x1="2" y1="12" x2="5" y2="12"/>
+                        <line x1="19" y1="12" x2="22" y2="12"/>
+                        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+                        <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+                    </g>
+                </svg>
+            `;
+            } else if (mode === 'dark') {
+                svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                     class="h-4 w-4 stroke-slate-800 dark:stroke-slate-100"
+                     fill="none" stroke-width="1.6">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3
+                             A7 7 0 0 0 21 12.79Z"/>
+                </svg>
+            `;
+            } else {
+                svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+                    <rect x="4" y="5" width="16" height="10" rx="1.5"
+                          class="fill-slate-200 dark:fill-slate-800 stroke-slate-500 dark:stroke-slate-400"
+                          stroke-width="1.2"/>
+                    <rect x="3" y="16" width="18" height="2.5" rx="0.8"
+                          class="fill-slate-300 dark:fill-slate-700"/>
+                </svg>
+            `;
+            }
+
+            iconContainer.innerHTML = svg;
+        }
+
+        function markActiveTheme(mode) {
+            const options = document.querySelectorAll('[data-theme-option]');
+            const checks = document.querySelectorAll('[data-theme-checkmark]');
+
+            options.forEach(btn => {
+                const isActive = btn.getAttribute('data-theme-option') === mode;
+                btn.classList.toggle('bg-slate-50', isActive && !btn.classList.contains('dark'));
+                btn.classList.toggle('dark:bg-slate-800', isActive);
+            });
+
+            checks.forEach(mark => {
+                mark.classList.toggle('hidden', mark.getAttribute('data-theme-checkmark') !== mode);
+            });
+
+            const label = document.getElementById('theme-toggle-label');
+            if (label) {
+                if (mode === 'light') label.textContent = 'Light';
+                else if (mode === 'dark') label.textContent = 'Dark';
+                else label.textContent = 'System';
+            }
+        }
+
+        function applyTheme(mode) {
+            try {
+                const prefersDark = window.matchMedia &&
+                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                let isDark = false;
+                if (mode === 'dark') {
+                    isDark = true;
+                } else if (mode === 'light') {
+                    isDark = false;
+                } else {
+                    // system
+                    isDark = prefersDark;
+                }
+
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+
+                setThemeIcon(mode);
+                markActiveTheme(mode);
+            } catch (e) {
+                // fail quietly
+            }
+        }
+
+        function setTheme(mode) {
+            localStorage.setItem('nova-theme', mode);
+            applyTheme(mode);
+            closeThemeMenu();
+        }
+
+        function initTheme() {
+            let mode = 'system';
+            try {
+                const stored = localStorage.getItem('nova-theme');
+                if (stored === 'light' || stored === 'dark' || stored === 'system') {
+                    mode = stored;
+                }
+            } catch (e) {
+                // ignore
+            }
+            applyTheme(mode);
+
+            // Listen to system changes if mode is system
+            const media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+            if (media && media.addEventListener) {
+                media.addEventListener('change', () => {
+                    const stored = localStorage.getItem('nova-theme');
+                    if (!stored || stored === 'system') {
+                        applyTheme('system');
+                    }
+                });
+            }
+        }
+
+        function openModal() {
+            const modal = document.getElementById('popup-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('popup-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initTheme();
+
+            // Close theme menu when clicking outside
+            document.addEventListener('click', function (e) {
+                const menu = document.getElementById('theme-menu');
+                const btn = document.getElementById('theme-toggle-btn');
+                if (!menu || !btn) return;
+
+                if (!menu.contains(e.target) && !btn.contains(e.target)) {
+                    closeThemeMenu();
+                }
+            });
+
+            // Hook up modal buttons
+            const closeBtn = document.getElementById('close-modal');
+            const closeBtn2 = document.getElementById('popup-close');
+
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (closeBtn2) closeBtn2.addEventListener('click', closeModal);
+
+            // Auto-open modal if there's a Django success message AND auto-close after 3s
+            {% if messages %}
+            {% for message in messages %}
+            {% if message.tags == 'success' %}
+            openModal();
+            const popupMsg = document.getElementById('popup-message');
+            if (popupMsg) {
+                popupMsg.textContent = "{{ message|escapejs }}";
+            }
+            // auto close after 3 seconds
+            setTimeout(closeModal, 1500);
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
