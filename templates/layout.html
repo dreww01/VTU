@@ -2,9 +2,9 @@
 <html lang="en" class="h-full">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>{% block title %}Nova VTU{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,48 +12,52 @@
     <!-- Custom Tailwind config -->
     <script>
         tailwind.config = {
-            darkMode: 'class',
+            darkMode: "class",
             theme: {
                 fontFamily: {
-                    sans: ['Inter', 'system-ui', 'ui-sans-serif', 'sans-serif'],
+                    sans: ["Inter", "system-ui", "ui-sans-serif", "sans-serif"],
                 },
                 extend: {
                     colors: {
                         brand: {
-                            50: '#eef9ff',
-                            100: '#d7efff',
-                            200: '#b0e0ff',
-                            300: '#7ac9ff',
-                            400: '#3aa6ff',
-                            500: '#0b82ff',
-                            600: '#0064db',
-                            700: '#004fae',
-                            800: '#003a7e',
-                            900: '#002655',
-                        }
-                    }
-                }
-            }
-        }
+                            50: "#eef9ff",
+                            100: "#d7efff",
+                            200: "#b0e0ff",
+                            300: "#7ac9ff",
+                            400: "#3aa6ff",
+                            500: "#0b82ff",
+                            600: "#0064db",
+                            700: "#004fae",
+                            800: "#003a7e",
+                            900: "#002655",
+                        },
+                    },
+                },
+            },
+        };
     </script>
 
     <!-- Apply saved theme early to avoid flash -->
     <script>
-            (function () {
-                try {
-                    const stored = localStorage.getItem('nova-theme');
-                    const prefersDark = window.matchMedia &&
-                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+        (function () {
+            try {
+                const stored = localStorage.getItem("nova-theme");
+                const prefersDark =
+                    window.matchMedia &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-                    if (stored === 'dark' || (!stored || stored === 'system') && prefersDark) {
-                        document.documentElement.classList.add('dark');
-                    } else {
-                        document.documentElement.classList.remove('dark');
-                    }
-                } catch (e) {
-                    // fail quietly
+                if (
+                    stored === "dark" ||
+                    ((!stored || stored === "system") && prefersDark)
+                ) {
+                    document.documentElement.classList.add("dark");
+                } else {
+                    document.documentElement.classList.remove("dark");
                 }
-            })();
+            } catch (e) {
+                // fail quietly
+            }
+        })();
     </script>
 
     {% block extra_head %}{% endblock %}
@@ -61,20 +65,15 @@
 
 <body class="min-h-screen font-sans">
     <div
-        class="min-h-screen bg-slate-50 dark:bg-slate-950
-           bg-[radial-gradient(circle_at_top,_rgba(11,130,255,0.08),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(15,23,42,0.20),_transparent_55%)]">
-
+        class="min-h-screen bg-slate-50 dark:bg-slate-950 bg-[radial-gradient(circle_at_top,_rgba(11,130,255,0.08),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(15,23,42,0.20),_transparent_55%)]">
         <!-- Modal for success message -->
         <div id="popup-modal"
             class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center">
-            <div class="relative w-full max-w-sm mx-4 p-6 rounded-2xl
-                       bg-white/95 dark:bg-slate-900/95
-                       border border-slate-200/70 dark:border-slate-700/70
-                       shadow-2xl shadow-slate-900/40">
+            <div
+                class="relative w-full max-w-sm mx-4 p-6 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/70 dark:border-slate-700/70 shadow-2xl shadow-slate-900/40">
                 <div class="flex items-start gap-3">
-                    <div class="flex h-9 w-9 items-center justify-center rounded-full
-                               bg-emerald-100 text-emerald-700
-                               dark:bg-emerald-500/10 dark:text-emerald-300">
+                    <div
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
                         <!-- Check icon -->
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5 animate-bounce"
                             fill="none" stroke="currentColor" stroke-width="1.8">
@@ -98,12 +97,43 @@
                             Your action was successful.
                         </p>
                         <div class="mt-4 flex justify-end">
-                            <button id="popup-close" class="inline-flex items-center rounded-xl px-3.5 py-1.5 text-xs font-medium
-                                           bg-brand-600 text-white hover:bg-brand-700
-                                           shadow-sm shadow-brand-500/40 transition">
+                            <button id="popup-close"
+                                class="inline-flex items-center rounded-xl px-3.5 py-1.5 text-xs font-medium bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-500/40 transition">
                                 Close
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-modal"
+            class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden items-center justify-center">
+            <div
+                class="relative w-full max-w-sm mx-4 p-6 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/70 dark:border-slate-700/70 shadow-2xl">
+                <div class="text-center">
+                    <div
+                        class="mx-auto h-14 w-14 rounded-full bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-amber-600 dark:text-amber-400"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2">Confirm Logout</h3>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-6">Are you sure you want to logout?</p>
+                    <div class="flex gap-3">
+                        <button onclick="closeLogoutModal()" id="cancelBtn"
+                            class="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition">
+                            Cancel
+                        </button>
+                        <button onclick="document.getElementById('logout-form').submit()"
+                            class="flex-1 rounded-xl px-4 py-2.5 text-sm font-medium bg-red-600 text-white hover:bg-red-700 shadow-sm transition">
+                            Yes, Logout
+                        </button>
                     </div>
                 </div>
             </div>
@@ -115,11 +145,8 @@
             </div>
 
             <!-- Side navigation (desktop) + drawer (mobile) -->
-            <aside id="side-drawer" class="fixed lg:static inset-y-0 left-0 z-40 w-72
-                      bg-white/95 dark:bg-slate-950/95 backdrop-blur
-                      border-r border-slate-200/80 dark:border-slate-900
-                      transform -translate-x-full lg:translate-x-0
-                      transition-transform duration-200 ease-out flex flex-col shadow-xl lg:shadow-none">
+            <aside id="side-drawer"
+                class="fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white/95 dark:bg-slate-950/95 backdrop-blur border-r border-slate-200/80 dark:border-slate-900 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out flex flex-col shadow-xl lg:shadow-none">
                 <!-- Brand header -->
                 <div
                     class="px-4 lg:px-6 py-3 lg:py-5 border-b border-slate-200/80 dark:border-slate-900 flex items-center gap-3">
@@ -145,13 +172,21 @@
                             class="px-3 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-2">
                             Overview
                         </p>
-                        <a href="{% url 'dashboard' %}" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                              bg-slate-900 text-white dark:bg-slate-800
-                              shadow-sm shadow-slate-400/50 dark:shadow-slate-950/70
-                              border border-slate-900 dark:border-slate-700">
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
-                                     bg-slate-800 text-slate-100 dark:bg-slate-900 text-[11px]">
-                                ▤
+                        <a href="{% url 'dashboard' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900 text-white dark:bg-slate-800 shadow-sm shadow-slate-400/50 dark:shadow-slate-950/70 border border-slate-900 dark:border-slate-700">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800 text-slate-100 dark:bg-slate-900 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="0 0 24 24"
+                                    id="meteor-icon-kit__solid-dashboard" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M2 0H7C8.10457 0 9 0.89543 9 2V7C9 8.10457 8.10457 9 7 9H2C0.89543 9 0 8.10457 0 7V2C0 0.89543 0.89543 0 2 0ZM2 11H7C8.10457 11 9 11.8954 9 13V22C9 23.1046 8.10457 24 7 24H2C0.89543 24 0 23.1046 0 22V13C0 11.8954 0.89543 11 2 11ZM13 0H22C23.1046 0 24 0.89543 24 2V13C24 14.1046 23.1046 15 22 15H13C11.8954 15 11 14.1046 11 13V2C11 0.89543 11.8954 0 13 0ZM13 17H22C23.1046 17 24 17.8954 24 19V22C24 23.1046 23.1046 24 22 24H13C11.8954 24 11 23.1046 11 22V19C11 17.8954 11.8954 17 13 17Z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                </svg>
                             </span>
                             <span class="text-[13px] font-medium">Dashboard</span>
                         </a>
@@ -164,32 +199,142 @@
                             VTU & Payments
                         </p>
 
-                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                              text-slate-700 hover:bg-slate-100
-                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
-                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
-                                ₦
+                        <a href="{% url 'fund_wallet' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg fill="currentColor" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" width="12px" height="12px"
+                                    viewBox="0 0 84.992 84.992" xml:space="preserve">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <g>
+                                            <g>
+                                                <g>
+                                                    <path
+                                                        d="M63.611,77.556c-1.207,0-2.303-0.176-3.256-0.52c-0.947-0.338-1.854-0.892-2.691-1.641 c-0.842-0.751-1.645-1.65-2.377-2.674c-0.746-1.044-1.492-2.107-2.213-3.16l-9.885-15.154H26.451v15.539 c0,2.52-0.584,4.438-1.734,5.709c-1.162,1.278-2.611,1.899-4.428,1.899c-1.881,0-3.342-0.628-4.469-1.919 c-1.125-1.283-1.695-3.198-1.695-5.689V54.407h-9.58C2.039,54.407,0,52.368,0,49.862s2.039-4.545,4.545-4.545h9.58v-7.757h-9.58 C2.039,37.561,0,35.522,0,33.017s2.039-4.545,4.545-4.545h9.58V17.146c0-2.189,0.238-3.909,0.707-5.11 c0.586-1.39,1.508-2.464,2.834-3.322c1.326-0.86,2.719-1.278,4.258-1.278c1.189,0,2.221,0.194,3.061,0.579 c0.863,0.394,1.594,0.906,2.236,1.565c0.654,0.669,1.33,1.547,2.012,2.606c0.701,1.09,1.424,2.225,2.191,3.437l8.492,12.849 h18.746V15.046c0-2.554,0.547-4.484,1.625-5.739c1.082-1.259,2.506-1.871,4.352-1.871c1.908,0,3.371,0.613,4.469,1.874 c1.093,1.254,1.646,3.185,1.646,5.736v13.426h9.693c2.506,0,4.545,2.039,4.545,4.545s-2.039,4.544-4.545,4.544h-9.693v7.758 h9.693c2.506,0,4.545,2.038,4.545,4.545c0,2.506-2.039,4.543-4.545,4.543h-9.693v14.467 C70.754,74.716,68.418,77.556,63.611,77.556z M24.951,51.407h19.051c0.506,0,0.979,0.256,1.256,0.68l10.312,15.809 c0.688,1.01,1.426,2.055,2.157,3.081c0.604,0.841,1.256,1.575,1.938,2.183c0.549,0.492,1.121,0.846,1.707,1.055 c0.629,0.229,1.381,0.343,2.24,0.343c1.747,0,4.143,0,4.143-5.683V52.907c0-0.828,0.673-1.5,1.5-1.5h11.193 c0.853,0,1.545-0.693,1.545-1.545s-0.692-1.545-1.545-1.545H69.254c-0.828,0-1.5-0.672-1.5-1.5V36.061c0-0.828,0.672-1.5,1.5-1.5 h11.193c0.852,0,1.545-0.692,1.545-1.544s-0.693-1.545-1.545-1.545H69.254c-0.828,0-1.5-0.672-1.5-1.5V15.046 c0-2.25-0.494-3.29-0.91-3.767c-0.363-0.418-0.908-0.844-2.205-0.844c-0.971,0-1.572,0.239-2.076,0.826 c-0.409,0.479-0.899,1.523-0.899,3.784v14.926c0,0.828-0.672,1.5-1.5,1.5H39.109c-0.504,0-0.975-0.253-1.252-0.673l-8.951-13.545 c-0.781-1.23-1.5-2.359-2.197-3.443c-0.572-0.891-1.123-1.609-1.637-2.135c-0.379-0.391-0.814-0.694-1.334-0.932 c-0.439-0.201-1.068-0.308-1.814-0.308c-0.955,0-1.789,0.253-2.627,0.796c-0.816,0.529-1.352,1.144-1.686,1.934 c-0.172,0.44-0.486,1.602-0.486,3.981v12.825c0,0.828-0.672,1.5-1.5,1.5H4.545C3.693,31.472,3,32.165,3,33.017 s0.693,1.544,1.545,1.544h11.08c0.828,0,1.5,0.672,1.5,1.5v10.757c0,0.828-0.672,1.5-1.5,1.5H4.545 C3.693,48.317,3,49.011,3,49.862s0.693,1.545,1.545,1.545h11.08c0.828,0,1.5,0.672,1.5,1.5v17.039 c0,1.719,0.33,3.004,0.953,3.715c0.547,0.627,1.207,0.895,2.211,0.895c0.963,0,1.621-0.273,2.205-0.917 c0.625-0.688,0.957-1.966,0.957-3.69V52.907C23.451,52.079,24.123,51.407,24.951,51.407z M60.162,63.331 c-0.494,0-0.969-0.246-1.252-0.674l-5.896-8.924c-0.303-0.461-0.33-1.052-0.067-1.537c0.262-0.486,0.771-0.789,1.319-0.789h5.896 c0.828,0,1.5,0.672,1.5,1.5v8.924c0,0.662-0.436,1.246-1.068,1.437C60.451,63.31,60.305,63.331,60.162,63.331z M57.055,54.407 l1.607,2.432v-2.432H57.055z M60.162,48.317h-9.92c-0.504,0-0.975-0.253-1.252-0.673l-7.107-10.757 c-0.305-0.461-0.332-1.052-0.07-1.538c0.262-0.485,0.77-0.789,1.32-0.789h17.029c0.828,0,1.5,0.672,1.5,1.5v10.757 C61.662,47.646,60.99,48.317,60.162,48.317z M51.049,45.317h7.613v-7.757h-12.74L51.049,45.317z M40.029,48.317H24.951 c-0.828,0-1.5-0.672-1.5-1.5V36.061c0-0.828,0.672-1.5,1.5-1.5h8.063c0.506,0,0.979,0.256,1.256,0.681l7.016,10.757 c0.301,0.461,0.324,1.049,0.063,1.533C41.086,48.017,40.58,48.317,40.029,48.317z M26.451,45.317H37.26l-5.059-7.757h-5.75 V45.317z M29.041,31.473h-4.09c-0.828,0-1.5-0.672-1.5-1.5v-6.271c0-0.664,0.436-1.249,1.072-1.438 c0.635-0.188,1.322,0.062,1.684,0.618l4.09,6.271c0.301,0.461,0.326,1.05,0.064,1.534C30.098,31.17,29.592,31.473,29.041,31.473z ">
+                                                    </path>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </svg>
                             </span>
                             <span class="text-[13px]">Fund wallet</span>
                         </a>
-
-                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                              text-slate-700 hover:bg-slate-100
-                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
-                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
-                                📶
+                        <!-- withdrawal button
+                        <! <a href=""
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                ₦
                             </span>
-                            <span class="text-[13px]">Airtime & Data</span>
+                            <span class="text-[13px]">Withdraw</span>
+                        </a> -->
+                        <a href="{% url 'transaction_history' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <g clip-path="url(#clip0_429_11075)">
+                                            <path
+                                                d="M5.63606 18.3639C9.15077 21.8786 14.8493 21.8786 18.364 18.3639C21.8787 14.8492 21.8787 9.1507 18.364 5.63598C14.8493 2.12126 9.15077 2.12126 5.63606 5.63598C3.87757 7.39447 2.99889 9.6996 3.00002 12.0044L3 13.9999"
+                                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                                stroke-linejoin="round"></path>
+                                            <path d="M1 11.9999L3 13.9999L5 11.9999" stroke="currentColor"
+                                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            </path>
+                                            <path d="M11 7.99994L11 12.9999L16 12.9999" stroke="currentColor"
+                                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            </path>
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_429_11075">
+                                                <rect width="24" height="24" fill="white"></rect>
+                                            </clipPath>
+                                        </defs>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="text-[13px]">Transaction History</span>
                         </a>
 
-                        <a href="#" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                              text-slate-700 hover:bg-slate-100
-                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
-                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
-                                💡
+                        <a href="{% url 'buy_airtime' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path
+                                            d="M14.5562 15.5477L14.1007 16.0272C14.1007 16.0272 13.0181 17.167 10.0631 14.0559C7.10812 10.9448 8.1907 9.80507 8.1907 9.80507L8.47752 9.50311C9.18407 8.75924 9.25068 7.56497 8.63424 6.6931L7.37326 4.90961C6.61028 3.8305 5.13596 3.68795 4.26145 4.60864L2.69185 6.26114C2.25823 6.71766 1.96765 7.30945 2.00289 7.96594C2.09304 9.64546 2.81071 13.259 6.81536 17.4752C11.0621 21.9462 15.0468 22.1239 16.6763 21.9631C17.1917 21.9122 17.6399 21.6343 18.0011 21.254L19.4217 19.7584C20.3806 18.7489 20.1102 17.0182 18.8833 16.312L16.9728 15.2123C16.1672 14.7486 15.1858 14.8848 14.5562 15.5477Z"
+                                            fill="currentColor"></path>
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M22 7C22 9.76142 19.7614 12 17 12C16.2002 12 15.4442 11.8122 14.7738 11.4783C14.5956 11.3895 14.392 11.36 14.1997 11.4114L13.0867 11.7092C12.6035 11.8385 12.1615 11.3965 12.2908 10.9133L12.5886 9.80031C12.64 9.60803 12.6105 9.4044 12.5217 9.22624C12.1878 8.55582 12 7.79984 12 7C12 4.23858 14.2386 2 17 2C19.7614 2 22 4.23858 22 7ZM17 4.8125C17.5178 4.8125 17.9375 5.23223 17.9375 5.75V6.0625H18.25C18.7678 6.0625 19.1875 6.48223 19.1875 7C19.1875 7.51777 18.7678 7.9375 18.25 7.9375H17.9375V8.25C17.9375 8.76777 17.5178 9.1875 17 9.1875C16.4822 9.1875 16.0625 8.76777 16.0625 8.25V7.9375H15.75C15.2322 7.9375 14.8125 7.51777 14.8125 7C14.8125 6.48223 15.2322 6.0625 15.75 6.0625H16.0625V5.75C16.0625 5.23223 16.4822 4.8125 17 4.8125Z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="text-[13px]">Airtime</span>
+                        </a>
+
+                        <!-- data -->
+                        <a href="{% url 'buy_data' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path
+                                            d="M14.5562 15.5477L14.1007 16.0272C14.1007 16.0272 13.0181 17.167 10.0631 14.0559C7.10812 10.9448 8.1907 9.80507 8.1907 9.80507L8.47752 9.50311C9.18407 8.75924 9.25068 7.56497 8.63424 6.6931L7.37326 4.90961C6.61028 3.8305 5.13596 3.68795 4.26145 4.60864L2.69185 6.26114C2.25823 6.71766 1.96765 7.30945 2.00289 7.96594C2.09304 9.64546 2.81071 13.259 6.81536 17.4752C11.0621 21.9462 15.0468 22.1239 16.6763 21.9631C17.1917 21.9122 17.6399 21.6343 18.0011 21.254L19.4217 19.7584C20.3806 18.7489 20.1102 17.0182 18.8833 16.312L16.9728 15.2123C16.1672 14.7486 15.1858 14.8848 14.5562 15.5477Z"
+                                            fill="currentColor"></path>
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M22 7C22 9.76142 19.7614 12 17 12C16.2002 12 15.4442 11.8122 14.7738 11.4783C14.5956 11.3895 14.392 11.36 14.1997 11.4114L13.0867 11.7092C12.6035 11.8385 12.1615 11.3965 12.2908 10.9133L12.5886 9.80031C12.64 9.60803 12.6105 9.4044 12.5217 9.22624C12.1878 8.55582 12 7.79984 12 7C12 4.23858 14.2386 2 17 2C19.7614 2 22 4.23858 22 7ZM17 4.8125C17.5178 4.8125 17.9375 5.23223 17.9375 5.75V6.0625H18.25C18.7678 6.0625 19.1875 6.48223 19.1875 7C19.1875 7.51777 18.7678 7.9375 18.25 7.9375H17.9375V8.25C17.9375 8.76777 17.5178 9.1875 17 9.1875C16.4822 9.1875 16.0625 8.76777 16.0625 8.25V7.9375H15.75C15.2322 7.9375 14.8125 7.51777 14.8125 7C14.8125 6.48223 15.2322 6.0625 15.75 6.0625H16.0625V5.75C16.0625 5.23223 16.4822 4.8125 17 4.8125Z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span class="text-[13px]">Data</span>
+                        </a>
+
+                        <a href="{% url 'pay_electricity' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="-1 0 20 20" version="1.1"
+                                    xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    fill="currentColor">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <title>content / 32 - content, bulb, electricity, idea, lamp, light, lightbulb
+                                            icon</title>
+                                        <g id="Free-Icons" stroke="none" stroke-width="1" fill="none"
+                                            fill-rule="evenodd" stroke-linecap="round" stroke-linejoin="round">
+                                            <g transform="translate(-674.000000, -378.000000)" id="Group"
+                                                stroke="currentColor" stroke-width="2">
+                                                <g transform="translate(671.000000, 376.000000)" id="Shape">
+                                                    <path
+                                                        d="M15.353238,17.7008719 L15.36,17.4243243 C15.36,16.7432432 15.52,16.1951351 15.84,15.78 C18.08,13.8279285 19.2,11.9610606 19.2,10.1793963 C19.2,6.21432545 15.9764502,3 12,3 C8.0235498,3 4.8,6.21432545 4.8,10.1793963 C4.8,11.9498896 5.92,13.8167575 8.16,15.78 C8.44444444,16.149009 8.60246914,16.6230831 8.63407407,17.2022222 L8.64280497,17.6027798 L8.64280497,17.6027798 L8.65282271,17.8042281 L8.65282271,17.8042281 L8.67245748,18.0247965 C8.67666493,18.0629361 8.68137327,18.1017111 8.68663258,18.1410407 L8.72520088,18.3830287 C8.93978086,19.5373423 9.66486486,21 12,21 C14.3351351,21 15.0602191,19.5373423 15.2747991,18.3830287 L15.3133674,18.1410407 L15.3133674,18.1410407 L15.3387123,17.9123643 L15.3387123,17.9123643 L15.353238,17.7008719 L15.353238,17.7008719 Z">
+                                                    </path>
+                                                    <path
+                                                        d="M8.70018035,17.0057125 C9.73767485,17.3950942 10.8376147,17.5897851 12,17.5897851 C13.1623853,17.5897851 14.2623853,17.3950942 15.3,17.0057125">
+                                                    </path>
+                                                </g>
+                                            </g>
+                                        </g>
+                                    </g>
+                                </svg>
                             </span>
                             <span class="text-[13px]">Electricity & Bills</span>
                         </a>
@@ -202,68 +347,83 @@
                             Account
                         </p>
 
-                        <a href="{% url 'profile' %}" class="group flex items-center gap-2.5 px-3 py-2 rounded-xl
-                              text-slate-700 hover:bg-slate-100
-                              dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
-                            <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
-                                     bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
-                                👤
+                        <a href="{% url 'profile' %}"
+                            class="group flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900/70 transition">
+                            <span
+                                class="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100 text-[11px]">
+                                <svg width="12px" height="12px" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M16.5 7.063C16.5 10.258 14.57 13 12 13c-2.572 0-4.5-2.742-4.5-5.938C7.5 3.868 9.16 2 12 2s4.5 1.867 4.5 5.063zM4.102 20.142C4.487 20.6 6.145 22 12 22c5.855 0 7.512-1.4 7.898-1.857a.416.416 0 0 0 .09-.317C19.9 18.944 19.106 15 12 15s-7.9 3.944-7.989 4.826a.416.416 0 0 0 .091.317z"
+                                            fill="currentColor"></path>
+                                    </g>
+                                </svg>
                             </span>
                             <span class="text-[13px]">Profile</span>
                         </a>
                     </div>
-
                 </nav>
 
                 <!-- Bottom section inside drawer/sidebar -->
                 <div
                     class="border-t border-slate-200/80 dark:border-slate-900 px-4 lg:px-5 py-3 text-xs flex items-center justify-between">
-
                     <div class="flex items-center gap-2">
-
                         {% if request.user.profile.avatar %}
                         <img src="{{ request.user.profile.avatar.url }}" class="h-8 w-8 rounded-full object-cover" />
                         {% else %}
-                        <div class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700
-                                flex items-center justify-center text-[11px] font-semibold text-white">
+                        <div
+                            class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700 flex items-center justify-center text-[11px] font-semibold text-white">
                             {{ request.user.username|first|upper }}
                         </div>
                         {% endif %}
 
                         <div class="flex flex-col">
                             <span class="text-slate-800 dark:text-slate-300 truncate max-w-[150px]">
-                                {{ request.user.profile.full_name|default:request.user.username }}
+                                {{ request.user.profile.user_name|default:request.user.username }}
                             </span>
                             <span class="text-slate-500 dark:text-slate-500 text-[11px]">Account</span>
                         </div>
-
                     </div>
 
-                    <a href="{% url 'logout' %}" class="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5
-                          bg-red-50 text-red-600 hover:bg-red-100
-                          dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20
-                          text-[11px] transition">
-                        <span>⬅</span>
-                        <span>Logout</span>
-                    </a>
+                    <form method="POST" action="{% url 'logout' %}" id="logout-form" class="inline">
+                        {% csrf_token %}
+                        <button type="button"
+                            onclick="document.getElementById('logout-modal').classList.remove('hidden'); document.getElementById('logout-modal').style.display='flex';"
+                            class="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20 text-[11px] transition">
+                            <span>
+                                <svg width="16px" height="16px" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                    <g id="SVGRepo_iconCarrier">
+                                        <path
+                                            d="M14.9453 1.25C13.5778 1.24998 12.4754 1.24996 11.6085 1.36652C10.7084 1.48754 9.95048 1.74643 9.34857 2.34835C8.82363 2.87328 8.55839 3.51836 8.41916 4.27635C8.28387 5.01291 8.25799 5.9143 8.25196 6.99583C8.24966 7.41003 8.58357 7.74768 8.99778 7.74999C9.41199 7.7523 9.74964 7.41838 9.75194 7.00418C9.75803 5.91068 9.78643 5.1356 9.89448 4.54735C9.99859 3.98054 10.1658 3.65246 10.4092 3.40901C10.686 3.13225 11.0746 2.9518 11.8083 2.85315C12.5637 2.75159 13.5648 2.75 15.0002 2.75H16.0002C17.4356 2.75 18.4367 2.75159 19.1921 2.85315C19.9259 2.9518 20.3144 3.13225 20.5912 3.40901C20.868 3.68577 21.0484 4.07435 21.1471 4.80812C21.2486 5.56347 21.2502 6.56459 21.2502 8V16C21.2502 17.4354 21.2486 18.4365 21.1471 19.1919C21.0484 19.9257 20.868 20.3142 20.5912 20.591C20.3144 20.8678 19.9259 21.0482 19.1921 21.1469C18.4367 21.2484 17.4356 21.25 16.0002 21.25H15.0002C13.5648 21.25 12.5637 21.2484 11.8083 21.1469C11.0746 21.0482 10.686 20.8678 10.4092 20.591C10.1658 20.3475 9.99859 20.0195 9.89448 19.4527C9.78643 18.8644 9.75803 18.0893 9.75194 16.9958C9.74964 16.5816 9.41199 16.2477 8.99778 16.25C8.58357 16.2523 8.24966 16.59 8.25196 17.0042C8.25799 18.0857 8.28387 18.9871 8.41916 19.7236C8.55839 20.4816 8.82363 21.1267 9.34857 21.6517C9.95048 22.2536 10.7084 22.5125 11.6085 22.6335C12.4754 22.75 13.5778 22.75 14.9453 22.75H16.0551C17.4227 22.75 18.525 22.75 19.392 22.6335C20.2921 22.5125 21.0499 22.2536 21.6519 21.6517C22.2538 21.0497 22.5127 20.2919 22.6337 19.3918C22.7503 18.5248 22.7502 17.4225 22.7502 16.0549V7.94513C22.7502 6.57754 22.7503 5.47522 22.6337 4.60825C22.5127 3.70814 22.2538 2.95027 21.6519 2.34835C21.0499 1.74643 20.2921 1.48754 19.392 1.36652C18.525 1.24996 17.4227 1.24998 16.0551 1.25H14.9453Z"
+                                            fill="CurrentColor"></path>
+                                        <path
+                                            d="M15 11.25C15.4142 11.25 15.75 11.5858 15.75 12C15.75 12.4142 15.4142 12.75 15 12.75H4.02744L5.98809 14.4306C6.30259 14.7001 6.33901 15.1736 6.06944 15.4881C5.79988 15.8026 5.3264 15.839 5.01191 15.5694L1.51191 12.5694C1.34567 12.427 1.25 12.2189 1.25 12C1.25 11.7811 1.34567 11.573 1.51191 11.4306L5.01191 8.43056C5.3264 8.16099 5.79988 8.19741 6.06944 8.51191C6.33901 8.8264 6.30259 9.29988 5.98809 9.56944L4.02744 11.25H15Z"
+                                            fill="CurrentColor"></path>
+                                    </g>
+                                </svg>
+                            </span>
+                            <span>Logout</span>
+                        </button>
+                    </form>
                 </div>
             </aside>
 
             <!-- Main column -->
             <div class="flex-1 flex flex-col">
                 <!-- Top bar (mobile + desktop) -->
-                <header class="sticky top-0 z-20
-                       bg-white/80 border-b border-slate-200/80
-                       dark:bg-slate-950/90 dark:border-slate-900
-                       backdrop-blur px-4 sm:px-6 lg:px-8 py-3
-                       flex items-center justify-between lg:justify-end gap-3">
+                <header
+                    class="sticky top-0 z-20 bg-white/80 border-b border-slate-200/80 dark:bg-slate-950/90 dark:border-slate-900 backdrop-blur px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between lg:justify-end gap-3">
                     <!-- Left: mobile burger + mini brand -->
                     <div class="flex items-center gap-2 lg:hidden">
-                        <button type="button" class="inline-flex items-center justify-center rounded-xl border
-                               border-slate-300 bg-white p-2 text-slate-700
-                               hover:border-slate-400 hover:bg-slate-50
-                               dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200
-                               dark:hover:border-slate-500 dark:hover:bg-slate-800 transition" onclick="openDrawer()">
+                        <button type="button"
+                            class="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white p-2 text-slate-700 hover:border-slate-400 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800 transition"
+                            onclick="openDrawer()">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
@@ -280,9 +440,8 @@
                     <div class="flex items-center gap-3 ml-auto">
                         <!-- Environment pill -->
                         <div class="hidden md:flex items-center gap-2 mr-1">
-                            <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200
-                                   bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700
-                                   dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                 Live mode · NGN
                             </span>
@@ -290,11 +449,8 @@
 
                         <!-- Theme toggle dropdown -->
                         <div class="relative">
-                            <button type="button" id="theme-toggle-btn" onclick="toggleThemeMenu()" class="inline-flex items-center gap-2 rounded-full border
-                                   border-slate-200 bg-white px-2.5 py-1.5 text-xs
-                                   text-slate-700 hover:border-slate-300 hover:bg-slate-50
-                                   dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200
-                                   dark:hover:border-slate-500 dark:hover:bg-slate-800 transition">
+                            <button type="button" id="theme-toggle-btn" onclick="toggleThemeMenu()"
+                                class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800 transition">
                                 <span id="theme-toggle-icon" class="flex items-center justify-center h-5 w-5">
                                     <!-- Icon will be injected by JS -->
                                 </span>
@@ -307,12 +463,10 @@
                             </button>
 
                             <div id="theme-menu"
-                                class="hidden absolute right-0 mt-2 w-44 rounded-xl
-                                    bg-white border border-slate-200 shadow-lg
-                                    dark:bg-slate-900 dark:border-slate-700 dark:shadow-slate-950/70 overflow-hidden text-xs z-30">
+                                class="hidden absolute right-0 mt-2 w-44 rounded-xl bg-white border border-slate-200 shadow-lg dark:bg-slate-900 dark:border-slate-700 dark:shadow-slate-950/70 overflow-hidden text-xs z-30">
                                 <!-- Light -->
-                                <button type="button" onclick="setTheme('light')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
-                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                <button type="button" onclick="setTheme('light')"
+                                    class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                                     data-theme-option="light">
                                     <span class="flex h-5 w-5 items-center justify-center">
                                         <!-- Sun SVG -->
@@ -337,8 +491,8 @@
                                 </button>
 
                                 <!-- Dark -->
-                                <button type="button" onclick="setTheme('dark')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
-                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                <button type="button" onclick="setTheme('dark')"
+                                    class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                                     data-theme-option="dark">
                                     <span class="flex h-5 w-5 items-center justify-center">
                                         <!-- Modern crescent Moon SVG -->
@@ -355,8 +509,8 @@
                                 </button>
 
                                 <!-- System -->
-                                <button type="button" onclick="setTheme('system')" class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50
-                                           dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
+                                <button type="button" onclick="setTheme('system')"
+                                    class="flex w-full items-center gap-2 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                                     data-theme-option="system">
                                     <span class="flex h-5 w-5 items-center justify-center">
                                         <!-- Laptop SVG -->
@@ -387,77 +541,109 @@
                         {% if request.user.profile.avatar %}
                         <img onclick="window.location.href='{% url 'profile' %}'"
                             src="{{ request.user.profile.avatar.url }}"
-                            class="h-8 w-8 rounded-full object-cover cursor-pointer">
+                            class="h-8 w-8 rounded-full object-cover cursor-pointer" />
                         {% else %}
-                        <div onclick="window.location.href='{% url 'profile' %}'" class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700
-                                flex items-center justify-center text-[11px] font-semibold text-white cursor-pointer">
+                        <div onclick="window.location.href='{% url 'profile' %}'"
+                            class="h-8 w-8 rounded-full bg-gradient-to-br from-brand-500 to-slate-700 flex items-center justify-center text-[11px] font-semibold text-white cursor-pointer">
                             {{ request.user.username|first|upper }}
                         </div>
                         {% endif %}
-
                     </div>
                 </header>
 
                 <!-- Page content -->
                 <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10 pb-32 lg:pb-10">
                     {# no global banner messages here; success is handled by popup #}
-
                     {% block content %}{% endblock %}
                 </main>
 
                 <!-- Bottom nav (mobile only) -->
-                <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30
-                        rounded-t-3xl border-t border-slate-200 bg-white/95
-                        dark:border-slate-800 dark:bg-slate-900/95
-                        shadow-[0_-8px_30px_rgba(15,23,42,0.35)]">
+                <nav
+                    class="lg:hidden fixed bottom-0 inset-x-0 z-30 rounded-t-3xl border-t border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-900/95 shadow-[0_-8px_30px_rgba(15,23,42,0.35)]">
                     <div class="max-w-3xl mx-auto flex items-stretch justify-between px-3 py-1">
                         <!-- Dashboard -->
                         <a href="{% url 'dashboard' %}"
                             class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
-                            <div class="flex items-center justify-center h-7 w-7 rounded-full
-                                    bg-slate-900 text-white
-                                    dark:bg-slate-800 dark:text-slate-100">
-                                🏠
+                            <div
+                                class="flex items-center justify-center h-7 w-7 rounded-full bg-slate-900 text-white dark:bg-slate-800 dark:text-slate-100">
+                                <!-- Home icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M3 10.5L12 3l9 7.5" />
+                                    <path d="M5 10v9h5v-5h4v5h5v-9" />
+                                </svg>
                             </div>
                             <span class="text-slate-900 dark:text-slate-200">Home</span>
                         </a>
 
                         <!-- Wallet -->
                         <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
-                            <div class="flex items-center justify-center h-7 w-7 rounded-full
-                                    bg-slate-100 text-slate-700
-                                    dark:bg-slate-800 dark:text-slate-100">
-                                ₦
+                            <div
+                                class="flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                                <!-- Wallet / Naira icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="3" y="6" width="18" height="12" rx="2" ry="2" />
+                                    <path d="M16 12h3" />
+                                    <path d="M7 9l2 6" />
+                                    <path d="M11 9l-2 6" />
+                                    <path d="M6.5 11h5" />
+                                    <path d="M6.5 13h5" />
+                                </svg>
                             </div>
                             <span class="text-slate-600 dark:text-slate-300">Wallet</span>
                         </a>
 
                         <!-- Central primary action -->
                         <button class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
-                            <div class="flex items-center justify-center h-10 w-10 rounded-full
-                                    bg-brand-500 text-white shadow-lg shadow-brand-500/40 -mt-5
-                                    border border-white dark:border-slate-900">
-                                ＋
-                            </div>
+                            <!-- fund wallet url -->
+                            <a href="{% url 'fund_wallet' %}">
+                                <div
+                                    class="flex items-center justify-center h-10 w-10 rounded-full bg-brand-500 text-white shadow-lg shadow-brand-500/40 -mt-5 border border-white dark:border-slate-900">
+                                    <!-- Plus icon -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-5 w-5"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M12 5v14" />
+                                        <path d="M5 12h14" />
+                                    </svg>
+                                </div>
+                            </a>
                             <span class="text-brand-600 dark:text-brand-200">Fund</span>
+
                         </button>
 
                         <!-- VTU -->
                         <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
-                            <div class="flex items-center justify-center h-7 w-7 rounded-full
-                                    bg-slate-100 text-slate-700
-                                    dark:bg-slate-800 dark:text-slate-100">
-                                📶
+                            <div
+                                class="flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                                <!-- Signal / network icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M4 20h1.5V14H4z" />
+                                    <path d="M8.25 20H9.75V11H8.25z" />
+                                    <path d="M12.5 20h1.5V8h-1.5z" />
+                                    <path d="M16.75 20h1.5V5h-1.5z" />
+                                </svg>
                             </div>
                             <span class="text-slate-600 dark:text-slate-300">VTU</span>
                         </a>
 
                         <!-- Profile -->
-                        <a href="#" class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
-                            <div class="flex items-center justify-center h-7 w-7 rounded-full
-                                    bg-slate-100 text-slate-700
-                                    dark:bg-slate-800 dark:text-slate-100">
-                                👤
+                        <a href="{% url 'profile' %}"
+                            class="flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[11px]">
+                            <div
+                                class="flex items-center justify-center h-7 w-7 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-100">
+                                <!-- User icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+                                    stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="8" r="3.2" />
+                                    <path d="M5 19.5a6.9 6.9 0 0 1 7-4.5 6.9 6.9 0 0 1 7 4.5" />
+                                </svg>
                             </div>
                             <span class="text-slate-600 dark:text-slate-300">Profile</span>
                         </a>
@@ -466,6 +652,119 @@
             </div>
         </div>
     </div>
+
+
+    <!-- Global toast (popup)-->
+    <div id="nova-toast" class="pointer-events-none fixed inset-x-0 top-3 flex justify-center z-[60] hidden">
+        <div id="nova-toast-inner" class="pointer-events-auto inline-flex items-center gap-2 px-4 py-2 rounded-full
+              bg-slate-900 text-slate-50 text-xs sm:text-sm shadow-lg
+              dark:bg-slate-100 dark:text-slate-900">
+            <span id="nova-toast-message"></span>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const toast = document.getElementById('nova-toast');
+            const msgEl = document.getElementById('nova-toast-message');
+            const inner = document.getElementById('nova-toast-inner');
+            if (!toast || !msgEl || !inner) return;
+
+            let hideTimer = null;
+
+            function show(message, type = 'info', duration = 2500) {
+                msgEl.textContent = message || '';
+
+                // Basic type styling
+                inner.classList.remove('bg-emerald-600', 'bg-amber-600', 'bg-rose-600',
+                    'dark:bg-emerald-500', 'dark:bg-amber-500', 'dark:bg-rose-500');
+                if (type === 'success') {
+                    inner.classList.add('bg-emerald-600', 'dark:bg-emerald-500');
+                } else if (type === 'error') {
+                    inner.classList.add('bg-rose-600', 'dark:bg-rose-500');
+                } else if (type === 'warning') {
+                    inner.classList.add('bg-amber-600', 'dark:bg-amber-500');
+                }
+
+                toast.classList.remove('hidden', 'opacity-0');
+                toast.classList.add('opacity-100');
+
+                if (hideTimer) clearTimeout(hideTimer);
+                hideTimer = setTimeout(hide, duration);
+            }
+
+            function hide() {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 150);
+            }
+
+            window.NovaToast = { show, hide };
+        })();
+    </script>
+
+
+    <!-- Global loading overlay -->
+    <div id="global-loading-overlay"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl px-6 py-5 shadow-xl flex flex-col items-center gap-3">
+            <!-- SVG spinner -->
+            <svg class="h-8 w-8 text-brand-600 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none">
+                </circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <p class="text-sm font-medium text-slate-700 dark:text-slate-100">
+                Processing your request...
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Please wait, don’t refresh or close this page.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('global-loading-overlay');
+            if (!overlay) return;
+
+            function showLoader() {
+                overlay.classList.remove('hidden');
+            }
+
+            function hideLoader() {
+                overlay.classList.add('hidden');
+            }
+
+            // Show loader on any POST form submit (unless opt-out)
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (!(form instanceof HTMLFormElement)) return;
+
+                // opt-out: <form data-noloader="true">
+                if (form.dataset.noloader === 'true') return;
+
+                const method = String(form.method || '').toLowerCase();
+                if (method !== 'post') return;
+
+                const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+                submitButtons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-60', 'cursor-not-allowed');
+                });
+
+                showLoader();
+            }, true);
+
+            // Expose helpers for JS-only flows (e.g. Paystack inline)
+            window.NovaLoader = {
+                show: showLoader,
+                hide: hideLoader,
+            };
+        })();
+    </script>
+
 
     <script>
         function openDrawer() {
@@ -506,39 +805,39 @@
 
             if (mode === 'light') {
                 svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
-                    <circle cx="12" cy="12" r="4" class="fill-slate-400"/>
-                    <g class="stroke-slate-400" stroke-width="1.5" stroke-linecap="round">
-                        <line x1="12" y1="2" x2="12" y2="5"/>
-                        <line x1="12" y1="19" x2="12" y2="22"/>
-                        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
-                        <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-                        <line x1="2" y1="12" x2="5" y2="12"/>
-                        <line x1="19" y1="12" x2="22" y2="12"/>
-                        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
-                        <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
-                    </g>
-                </svg>
-            `;
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+              <circle cx="12" cy="12" r="4" class="fill-slate-400"/>
+              <g class="stroke-slate-400" stroke-width="1.5" stroke-linecap="round">
+                  <line x1="12" y1="2" x2="12" y2="5"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                  <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+                  <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+                  <line x1="2" y1="12" x2="5" y2="12"/>
+                  <line x1="19" y1="12" x2="22" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+                  <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+              </g>
+          </svg>
+      `;
             } else if (mode === 'dark') {
                 svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                     class="h-4 w-4 stroke-slate-800 dark:stroke-slate-100"
-                     fill="none" stroke-width="1.6">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3
-                             A7 7 0 0 0 21 12.79Z"/>
-                </svg>
-            `;
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               class="h-4 w-4 stroke-slate-800 dark:stroke-slate-100"
+               fill="none" stroke-width="1.6">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3
+                       A7 7 0 0 0 21 12.79Z"/>
+          </svg>
+      `;
             } else {
                 svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
-                    <rect x="4" y="5" width="16" height="10" rx="1.5"
-                          class="fill-slate-200 dark:fill-slate-800 stroke-slate-500 dark:stroke-slate-400"
-                          stroke-width="1.2"/>
-                    <rect x="3" y="16" width="18" height="2.5" rx="0.8"
-                          class="fill-slate-300 dark:fill-slate-700"/>
-                </svg>
-            `;
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
+              <rect x="4" y="5" width="16" height="10" rx="1.5"
+                    class="fill-slate-200 dark:fill-slate-800 stroke-slate-500 dark:stroke-slate-400"
+                    stroke-width="1.2"/>
+              <rect x="3" y="16" width="18" height="2.5" rx="0.8"
+                    class="fill-slate-300 dark:fill-slate-700"/>
+          </svg>
+      `;
             }
 
             iconContainer.innerHTML = svg;
@@ -638,6 +937,28 @@
             }
         }
 
+        function openLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Multiple lines, depends on timing
+        document.addEventListener('DOMContentLoaded', function () {
+            const btn = document.getElementById('cancelBtn');
+            if (btn) btn.addEventListener('click', closeLogoutModal);
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             initTheme();
 
@@ -659,6 +980,16 @@
             if (closeBtn) closeBtn.addEventListener('click', closeModal);
             if (closeBtn2) closeBtn2.addEventListener('click', closeModal);
 
+            // Close logout modal when clicking outside
+            const logoutModal = document.getElementById('logout-modal');
+            if (logoutModal) {
+                logoutModal.addEventListener('click', function (e) {
+                    if (e.target === this) {
+                        closeLogoutModal();
+                    }
+                });
+            }
+
             // Auto-open modal if there's a Django success message AND auto-close after 3s
             {% if messages %}
             {% for message in messages %}
@@ -675,6 +1006,7 @@
             {% endif %}
         });
     </script>
+
 
     {% block extra_js %}{% endblock %}
 </body>

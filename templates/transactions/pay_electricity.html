@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-50">
+                Pay Electricity
+            </h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Vend prepaid tokens or pay postpaid bills directly from your Nova wallet.
+            </p>
+        </div>
+
+        {% if wallet %}
+        <div class="text-right">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Wallet balance
+            </p>
+            <p class="text-lg sm:text-xl font-semibold text-emerald-600 dark:text-emerald-400">
+                ₦{{ wallet.balance|floatformat:2|intcomma }}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for message in messages %}
+        <div class="text-sm px-4 py-3 rounded-xl border
+                {% if message.tags == 'success' %}
+                    bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-100
+                {% elif message.tags == 'error' %}
+                    bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-100
+                {% elif message.tags == 'warning' %}
+                    bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100
+                {% else %}
+                    bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-100
+                {% endif %}
+            ">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/60 p-6 sm:p-8">
+        <form method="post" action="{% url 'pay_electricity' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- DISCO -->
+            <div>
+                <label for="disco" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Distribution company
+                </label>
+                <select id="disco" name="disco" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                           bg-white dark:bg-slate-900/70
+                           px-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" required>
+                    <option value="" disabled selected>Select DISCO</option>
+                    {% for key, sid in available_discos.items %}
+                    <option value="{{ key }}">
+                        {{ key|upper }} ({{ sid }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Meter type -->
+            <div>
+                <p class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Meter type
+                </p>
+                <div class="flex items-center gap-4">
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-100">
+                        <input type="radio" name="meter_type" value="prepaid" required
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500">
+                        <span>Prepaid</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-100">
+                        <input type="radio" name="meter_type" value="postpaid" required
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500">
+                        <span>Postpaid</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Meter number -->
+            <div>
+                <label for="meter_number" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Meter number
+                </label>
+                <input type="text" id="meter_number" name="meter_number" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                           bg-white dark:bg-slate-900/70
+                           px-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    placeholder="Enter meter number" required />
+            </div>
+
+            <!-- Amount -->
+            <div>
+                <label for="amount" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Amount (₦)
+                </label>
+                <input type="number" id="amount" name="amount" min="100" step="50" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                           bg-white dark:bg-slate-900/70
+                           px-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    placeholder="e.g. 2000" required />
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Units or bill value depend on your DISCO's tariff.
+                </p>
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label for="phone" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Customer phone number
+                </label>
+                <input type="tel" id="phone" name="phone" inputmode="numeric" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                           bg-white dark:bg-slate-900/70
+                           px-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                    placeholder="Phone number for receipt / token SMS" required />
+            </div>
+
+            <div class="pt-2 flex items-center justify-between gap-4">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    For prepaid, your token will show on screen and in your transaction history after a successful vend.
+                </p>
+                <button type="submit" class="inline-flex items-center justify-center px-4 sm:px-5 py-2.5
+                           rounded-xl text-sm sm:text-base font-semibold
+                           bg-brand-600 text-white shadow-sm
+                           hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                           dark:focus:ring-offset-slate-900 transition">
+                    Pay Electricity
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

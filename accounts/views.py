@@ -9,188 +9,6 @@
 # # - View: a base class for views
 # # - User: a model for users
 
-# from django.shortcuts import render, redirect
-# from django.contrib.auth import authenticate, login, logout
-# from django.contrib.auth.decorators import login_required
-# from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.views import View
-# from django.contrib.auth.models import User  # (currently unused, but kept if needed later)
-# from .forms import RegisterForm
-# from django.contrib.auth.forms import AuthenticationForm
-
-# # for password reset
-# import secrets
-# from django.core.mail import send_mail
-# from django.contrib import messages
-# from django.conf import settings
-
-# # PASSWORD RESET CONFIRM
-# from django.contrib.auth.forms import SetPasswordForm
-# from django.contrib.auth import get_user_model
-# import logging
-
-# from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
-
-# # Configure logging
-# logger = logging.getLogger(__name__)
-
-# # Registration view
-# def register_view(request):
-#     """
-#     Handles user registration using RegisterForm.
-#     - Secure user registration flow.
-#     - Password hashed, confirmed, and stored.
-#     """
-#     if request.user.is_authenticated:
-#         return redirect('dashboard')  # Redirect to dashboard if already logged in
-
-#     if request.method == "POST":
-#         form = RegisterForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             login(request, user)  # Automatically log the user in after registration
-#             messages.success(request, "You have successfully registered and logged in.")
-#             return redirect('dashboard')  # Redirect to the dashboard after successful registration
-#         else:
-#             logger.error(f"Registration failed: {form.errors}")
-#     else:
-#         form = RegisterForm()
-
-#     return render(request, 'accounts/register.html', {'form': form})
-
-# # Login view
-# def login_view(request):
-#     """
-#     Handles user login.
-#     - Authenticates the user with proper validation and logging.
-#     """
-#     if request.user.is_authenticated:
-#         return redirect('dashboard')  # Redirect to dashboard if already logged in
-
-#     if request.method == "POST":
-#         form = AuthenticationForm(request, data=request.POST)
-#         if form.is_valid():
-#             user = form.get_user()
-#             login(request, user)
-#             messages.success(request, "You are now logged in.")
-#             return redirect(request.GET.get('next', '/'))  # Redirect to the next page if provided, else to home
-#         else:
-#             messages.error(request, "Invalid credentials. Please try again.")
-#             logger.warning(f"Login failed for user: {request.POST.get('username')}")
-#     else:
-#         form = AuthenticationForm()
-
-#     return render(request, 'accounts/login.html', {'form': form})
-
-# # Logout view
-# @login_required
-# def logout_view(request):
-#     """
-#     Handles user logout.
-#     - Logs the user out and redirects them to the login page.
-#     """
-#     logout(request)
-#     messages.success(request, "You have successfully logged out.")
-#     return redirect('login')
-
-# # Dashboard view (protected by login_required)
-# @login_required
-# def dashboard_view(request):
-#     """
-#     Main user dashboard.
-#     - Placeholder for wallet balance and recent transactions.
-#     """
-#     context = {
-#         "wallet_balance": 0,  # Placeholder, will be replaced by actual data
-#         "recent_transactions": [],  # Placeholder, will be replaced by actual data
-#     }
-#     return render(request, "accounts/dashboard.html", context)
-
-# # Password reset view (step 1)
-# def send_reset_code(request):
-#     """
-#     Sends a password reset code to the user's email address.
-#     - Validates the email address and sends a secure 6-digit reset code.
-#     """
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-#         try:
-#             user = User.objects.get(email=email)
-#         except User.DoesNotExist:
-#             messages.error(request, 'No account found with this email address.')
-#             return redirect('password_reset')  # Redirect back to the password reset page if no user found
-
-#         # Generate a secure 6-digit code
-#         reset_code = secrets.randbelow(1000000)
-#         reset_code = str(reset_code).zfill(6)  # Ensure it's always 6 digits
-
-#         # Save the reset code in the session
-#         request.session['reset_code'] = reset_code
-#         request.session['reset_email'] = email
-
-#         # Send the reset code via email
-#         subject = "Your Password Reset Code"
-#         message = f"Your password reset code is: {reset_code}"
-#         send_mail(
-#             subject,
-#             message,
-#             settings.DEFAULT_FROM_EMAIL,
-#             [email],
-#             fail_silently=False,
-#         )
-
-#         messages.success(request, 'A 6-digit reset code has been sent to your email.')
-#         return redirect('password_reset_confirm')  # Redirect to confirm page
-
-#     return render(request, 'accounts/password_reset.html')
-
-
-
-
-# # Set up logging for debugging
-# logger = logging.getLogger(__name__)
-
-# def password_reset_confirm(request):
-#     """
-#     This view handles the password reset by confirming the reset code
-#     and allowing the user to set their new password.
-#     """
-#     email = request.session.get('reset_email')  # The email stored in the session
-
-#     if request.method == 'POST':
-#         entered_code = request.POST.get('reset_code')  # The code entered by the user
-#         stored_code = request.session.get('reset_code')  # The code stored in the session
-
-#         # Validate the reset code entered by the user
-#         if entered_code != stored_code:
-#             messages.error(request, 'The reset code is incorrect. Please try again.')
-#             return render(request, 'accounts/password_reset_confirm.html')
-
-#         try:
-#             # Retrieve the user object using the email stored in the session
-#             user = get_user_model().objects.get(email=email)
-#         except get_user_model().DoesNotExist:
-#             messages.error(request, 'User not found. Please try again.')
-#             return render(request, 'accounts/password_reset_confirm.html')
-
-#         # Now that the reset code is verified, render the SetPasswordForm for the user to set a new password
-#         form = SetPasswordForm(user=user, data=request.POST)
-#         if form.is_valid():
-#             # Save the new password
-#             form.save()
-#             del request.session['reset_code']  # Clear the session
-#             del request.session['reset_email']
-
-#             messages.success(request, 'Your password has been successfully set! Please log in.')
-#             return redirect('login')  # Redirect to login after successful password reset
-
-#         # If the form is invalid (e.g., passwords don't match), render the form with errors
-#         logger.error(f"Form errors: {form.errors}")
-#         return render(request, 'accounts/set_new_password.html', {'form': form})
-
-#     # If it's not a POST request, render the form (showing the reset code input)
-#     return render(request, 'accounts/password_reset_confirm.html')
-
 
 # Import necessary modules for authentication and authorization
 from django.shortcuts import render, redirect
@@ -219,6 +37,12 @@ from .models import UserProfile
 
 # FORMS
 from .forms import RegisterForm, ProfileForm
+
+# from wallet app
+from wallet.models import Wallet
+
+from decimal import Decimal, InvalidOperation
+
 
 
 
@@ -256,13 +80,18 @@ def register_view(request):
 def logout_view(request):
     """
     Handles user logout.
-    - Logs the user out and redirects them to the login page.
+    - POST: Logs the user out and redirects to login page
     """
-    username = request.user.username
-    logout(request)
-    request.session['just_logged_out'] = True  # Set flag
-    logger.info(f"User logged out: {username}")
-    return redirect('login')
+    if request.method == 'POST':
+        username = request.user.username
+        logout(request)
+        messages.success(request, f"Goodbye {username}! You have been successfully logged out.")
+        logger.info(f"User logged out: {username}")
+        return redirect('login')
+    
+    # If GET request, redirect to dashboard
+    return redirect('dashboard')
+
 
 # Login view
 def login_view(request):
@@ -295,18 +124,51 @@ def login_view(request):
 
     return render(request, 'accounts/login.html', {'form': form})
 
-# Dashboard view (protected by login_required)
+
+
+# Set up logger
+logger = logging.getLogger(__name__)
+
+MAX_FUND_LIMIT = Decimal('100000.00')  # Limit set to 100,000 Naira
+
 @login_required
 def dashboard_view(request):
-    """
-    Main user dashboard.
-    - Placeholder for wallet balance and recent transactions.
-    """
-    context = {
-        "wallet_balance": 0,
-        "recent_transactions": [],
-    }
-    return render(request, "accounts/dashboard.html", context)
+    balance = Decimal('0.00')  # Default value in case of failure
+    transactions = []  # Default value if no transactions are found
+
+    try:
+        wallet = Wallet.objects.get(user=request.user)
+
+        # Ensure the wallet balance is valid (strict validation)
+        if wallet.balance is None or not isinstance(wallet.balance, (int, float, Decimal)):
+            # Log error if balance is not a valid type or is None
+            logger.error(f"Invalid or None balance for user {request.user.username}, resetting to ₦0.00")
+            wallet.balance = Decimal('0.00')  # Reset to default value in case of invalid balance
+            wallet.save()  # Save the reset balance in the database
+
+        # Safely convert to Decimal and check for InvalidOperation
+        try:
+            balance = Decimal(wallet.balance)
+        except InvalidOperation:
+            logger.error(f"Invalid balance value for user {request.user.username}: {wallet.balance}")
+            balance = Decimal('0.00')  # Fallback to 0 if invalid value
+
+        # Fetch the latest transactions (latest 5)
+        transactions = wallet.transaction_set.all().order_by('-timestamp')[:5]
+
+    except Wallet.DoesNotExist:
+        # Handle case where the wallet does not exist (should not happen since wallet is created on signup)
+        logger.error(f"Wallet does not exist for user {request.user.username}")
+
+    # Pass both balance and transactions in a single context dictionary
+    return render(request, 'accounts/dashboard.html', {
+        'wallet_balance': balance,
+        'recent_transactions': transactions,
+    })
+
+
+
+
 
 # Password reset view (step 1: send reset code to email)
 def send_reset_code(request):
@@ -354,7 +216,7 @@ def send_reset_code(request):
     return render(request, 'accounts/password_reset.html')
 
 
-# Password reset view (step 2: verify code and set new password)
+# Password reset view
 
 def password_reset_confirm(request):
     """

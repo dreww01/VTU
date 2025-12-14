@@ -14,7 +14,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 
     # Password reset
-    # Route for the password reset (step 1, user submits their email)
     path('password_reset/', views.send_reset_code, name='password_reset'),
 
     # Route for confirming the password reset code and setting the new password (step 2)

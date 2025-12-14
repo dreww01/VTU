@@ -13,6 +13,8 @@
             Update your personal details used across Nova VTU.
         </p>
 
+
+        {% include 'includes/form_messages.html' %}
         <form method="POST" enctype="multipart/form-data" class="space-y-5">
             {% csrf_token %}
 
@@ -58,24 +60,25 @@
             </div>
 
             <!-- Avatar upload -->
-            <div class="space-y-2">
+            <!-- Avatar upload -->
+            <div class="space-y-3">
                 <label for="id_avatar"
-                    class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                    class="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                     Avatar (optional)
                 </label>
 
-                <div class="flex items-center gap-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-dashed
-               border-slate-300 dark:border-slate-700 px-3 py-2.5">
+                <div class="flex flex-col sm:flex-row items-center gap-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-dashed
+        border-slate-300 dark:border-slate-700 px-3 py-2.5">
                     <input type="file" name="avatar" id="id_avatar" accept="image/*" class="text-xs text-slate-600 dark:text-slate-300 file:mr-3
-                   file:rounded-lg file:border-0 file:bg-brand-600 file:px-3 file:py-1.5
-                   file:text-xs file:font-medium file:text-white
-                   hover:file:bg-brand-700 cursor-pointer">
+            file:rounded-lg file:border-0 file:bg-brand-600 file:px-3 file:py-1.5
+            file:text-xs file:font-medium file:text-white
+            hover:file:bg-brand-700 cursor-pointer">
 
                     {% if form.instance.avatar %}
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-col items-center gap-2">
                         <img src="{{ form.instance.avatar.url }}" alt="Current avatar"
                             class="h-9 w-9 rounded-full object-cover border border-slate-300 dark:border-slate-700">
-                        <span class="text-[11px] text-slate-500 dark:text-slate-400">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
                             Current avatar
                         </span>
                     </div>
@@ -95,14 +98,14 @@
                 {% endif %}
             </div>
 
-
-            <div class="pt-2 flex justify-end">
-                <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium
-                               bg-brand-600 text-white hover:bg-brand-700
-                               shadow-sm shadow-brand-500/40 transition">
+            <div class="pt-4 flex justify-end">
+                <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl px-6 py-3 text-sm font-medium
+                           bg-brand-600 text-white hover:bg-brand-700
+                           shadow-sm shadow-brand-500/40 transition">
                     <span>Save changes</span>
                 </button>
             </div>
+
         </form>
     </div>
 </div>

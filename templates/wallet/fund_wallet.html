@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-6 bg-white dark:bg-slate-800 rounded-xl shadow-xl">
+    <h1 class="text-3xl font-semibold text-slate-900 dark:text-slate-50 mb-6">
+        Fund Your Wallet
+    </h1>
+
+    {% include 'includes/form_messages.html' %}
+    <form id="paymentForm" onsubmit="event.preventDefault(); payWithPaystack();">
+        {% csrf_token %}
+        <div class="mb-6">
+            <label for="amount" class="block text-lg font-semibold text-slate-700 dark:text-slate-300">
+                Enter Amount
+            </label>
+            <input type="number" id="amount" name="amount"
+                class="w-full mt-2 p-4 border border-slate-300 dark:border-slate-700 rounded-xl text-lg focus:ring-2 focus:ring-brand-500 dark:text-slate-50 dark:bg-slate-700"
+                step="0.01" min="0.01" placeholder="Enter amount to fund" required>
+            {% if error %}
+            <p class="text-red-500 text-sm mt-2">{{ error }}</p>
+            {% endif %}
+        </div>
+
+        <button type="submit" id="fundBtn"
+            class="w-full mt-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+            Fund Wallet
+        </button>
+    </form>
+
+    <div class="mt-6 text-sm text-slate-500 dark:text-slate-400 text-center">
+        <p>All transactions are secure and processed instantly.</p>
+    </div>
+</div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+    function payWithPaystack() {
+        const amountInput = document.getElementById('amount');
+        const btn = document.getElementById('fundBtn');
+
+        if (!amountInput || !btn) {
+            alert('Form not loaded correctly.');
+            return;
+        }
+
+        const amount = parseFloat(amountInput.value);
+        const maxLimit = 100000; // Same as backend MAX_FUND_LIMIT
+
+        if (isNaN(amount) || amount <= 0 || amount > maxLimit) {
+            alert('Enter a valid amount between ₦1 and ₦100,000');
+            return;
+        }
+
+        btn.disabled = true;
+
+        const handler = PaystackPop.setup({
+            key: '{{ paystack_public_key }}',      // From view context
+            email: '{{ user.email }}',            // Logged-in user
+            amount: Math.round(amount * 100),     // Naira → kobo
+            currency: 'NGN',
+            ref: 'REF_' + Date.now(),             // Simple unique ref for testing
+
+            callback: function (response) {
+                // Build complete URL from scratch
+                const baseUrl = window.location.origin; // http://127.0.0.1:8000
+                const verifyUrl = baseUrl + "/wallet/verify/" + encodeURIComponent(response.reference) + "/";
+                window.location.href = verifyUrl;
+            },
+            onClose: function () {
+                btn.disabled = false;
+            }
+        });
+
+        handler.openIframe();
+    }
+</script>
+{% endblock %}

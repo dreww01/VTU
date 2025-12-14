@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+
+    <h1 class="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+        Electricity Purchase Receipt
+    </h1>
+
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+        Transaction Reference: <span class="font-mono text-slate-700 dark:text-slate-200">{{ tx.reference }}</span>
+        <button type="button"
+            onclick="navigator.clipboard.writeText('{{ tx.reference }}'); NovaToast.show('Reference copied to clipboard', 'success');"
+            class="ml-2 inline-flex items-center px-2 py-0.5 text-[11px] rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100">
+            Copy
+        </button>
+    </p>
+
+    {% if tx.token %}
+    <div class="mb-6">
+        <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
+            Prepaid Token
+        </p>
+        <div class="flex items-center justify-between bg-slate-900 text-white rounded-lg px-4 py-3">
+            <span class="font-mono tracking-widest">{{ tx.token }}</span>
+            <button
+                onclick="navigator.clipboard.writeText('{{ tx.token }}'); NovaToast.show('Token copied to clipboard', 'success');"
+                class="text-xs px-2 py-1 bg-slate-700 rounded hover:bg-slate-600">
+                Copy
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-100">DISCO</span>
+            <span
+                class="font-medium text-slate-500 dark:text-slate-100">{{ tx.provider_response.content.transactions.product_name }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-100">Meter Number</span>
+            <span
+                class="text-slate-500 dark:text-slate-100">{{ tx.provider_response.content.transactions.unique_element }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-100">Amount</span>
+            <span class="text-slate-500 dark:text-slate-100">₦{{ tx.amount|floatformat:2 }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-100">Status</span>
+            <span class="font-semibold capitalize text-slate-500 dark:text-slate-100">{{ tx.status }}</span>
+        </div>
+        <div class="flex justify-between">
+            <span class="text-slate-500 dark:text-slate-100">Date</span>
+            <span class="text-slate-500 dark:text-slate-100">{{ tx.timestamp }}</span>
+        </div>
+    </div>
+
+    <div class="mt-8 text-center">
+        <a href="{% url 'transaction_history' %}"
+            class="inline-flex items-center px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700">
+            Back to History
+        </a>
+    </div>
+
+</div>
+{% endblock %}

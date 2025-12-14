@@ -6,6 +6,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
+    path('wallet/', include('wallet.urls')),
+    path('transactions/', include('transactions.urls')),
 ]
 
 

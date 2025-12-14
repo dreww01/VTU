@@ -1,0 +1,20 @@
+<!-- templates/includes/form_messages.html -->
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags != 'success' %}
+        <div class="rounded-lg px-4 py-3 text-sm mb-4
+            {% if message.tags == 'error' or message.tags == 'danger' %}
+                bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50
+            {% elif message.tags == 'warning' %}
+                bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50
+            {% elif message.tags == 'info' %}
+                bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50
+            {% else %}
+                bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-400 dark:border-slate-800
+            {% endif %}
+        ">
+            {{ message }}
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}

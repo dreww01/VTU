@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Page header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-slate-50">
+                Buy Airtime
+            </h1>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Top up any Nigerian network directly from your Nova wallet.
+            </p>
+        </div>
+
+        {% if wallet %}
+        <div class="text-right">
+            <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Wallet balance
+            </p>
+            <p class="text-lg sm:text-xl font-semibold text-emerald-600 dark:text-emerald-400">
+                ₦{{ wallet.balance|floatformat:2|intcomma }}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="space-y-2 mb-6">
+        {% for message in messages %}
+        <div class="text-sm px-4 py-3 rounded-xl border
+                {% if message.tags == 'success' %}
+                    bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/30 dark:border-emerald-700 dark:text-emerald-100
+                {% elif message.tags == 'error' %}
+                    bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-900/30 dark:border-rose-700 dark:text-rose-100
+                {% elif message.tags == 'warning' %}
+                    bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100
+                {% else %}
+                    bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-100
+                {% endif %}
+            ">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Airtime card -->
+    <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700/60 p-6 sm:p-8">
+        <form method="post" action="{% url 'buy_airtime' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Network -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">
+                    Network
+                </label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+                    <label
+                        class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border cursor-pointer 
+                                   text-sm font-medium
+                                   bg-slate-50/80 border-slate-200 text-slate-700
+                                   dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100
+                                   hover:border-brand-500 hover:bg-brand-50/70 dark:hover:border-brand-400 dark:hover:bg-slate-700">
+                        <input type="radio" name="network" value="mtn"
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500" required>
+                        <span>MTN</span>
+                    </label>
+
+                    <label
+                        class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border cursor-pointer 
+                                   text-sm font-medium
+                                   bg-slate-50/80 border-slate-200 text-slate-700
+                                   dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100
+                                   hover:border-brand-500 hover:bg-brand-50/70 dark:hover:border-brand-400 dark:hover:bg-slate-700">
+                        <input type="radio" name="network" value="airtel"
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500">
+                        <span>Airtel</span>
+                    </label>
+
+                    <label
+                        class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border cursor-pointer 
+                                   text-sm font-medium
+                                   bg-slate-50/80 border-slate-200 text-slate-700
+                                   dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100
+                                   hover:border-brand-500 hover:bg-brand-50/70 dark:hover:border-brand-400 dark:hover:bg-slate-700">
+                        <input type="radio" name="network" value="glo"
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500">
+                        <span>Glo</span>
+                    </label>
+
+                    <label
+                        class="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border cursor-pointer 
+                                   text-sm font-medium
+                                   bg-slate-50/80 border-slate-200 text-slate-700
+                                   dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100
+                                   hover:border-brand-500 hover:bg-brand-50/70 dark:hover:border-brand-400 dark:hover:bg-slate-700">
+                        <input type="radio" name="network" value="9mobile"
+                            class="h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500">
+                        <span>9mobile</span>
+                    </label>
+                </div>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Select the network you want to top up.
+                </p>
+            </div>
+
+            <!-- Phone number -->
+            <div>
+                <label for="phone" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Phone number
+                </label>
+                <div class="relative">
+                    <input type="tel" id="phone" name="phone" inputmode="numeric" placeholder="e.g. 08012345678" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                               bg-white dark:bg-slate-900/70
+                               px-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                               focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" required />
+                </div>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Make sure this number is correct. Airtime will be sent instantly.
+                </p>
+            </div>
+
+            <!-- Amount -->
+            <div>
+                <label for="amount" class="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Amount (₦)
+                </label>
+                <div class="relative">
+                    <span
+                        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-sm">
+                        ₦
+                    </span>
+                    <input type="number" id="amount" name="amount" min="50" step="50" placeholder="Enter amount" class="block w-full rounded-xl border border-slate-300 dark:border-slate-600
+                               bg-white dark:bg-slate-900/70
+                               pl-7 pr-3 py-2.5 text-sm sm:text-base text-slate-900 dark:text-slate-50
+                               focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" required />
+                </div>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Minimum ₦50. Airtime value will be deducted from your Nova wallet.
+                </p>
+            </div>
+
+            <!-- Footer / submit -->
+            <div class="pt-2 flex items-center justify-between gap-4">
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                    By continuing, you agree that this transaction cannot be reversed
+                    once the airtime is successfully delivered.
+                </div>
+
+                <button type="submit" class="inline-flex items-center justify-center px-4 sm:px-5 py-2.5
+                           rounded-xl text-sm sm:text-base font-semibold
+                           bg-brand-600 text-white shadow-sm
+                           hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500
+                           dark:focus:ring-offset-slate-900 transition">
+                    Buy Airtime
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

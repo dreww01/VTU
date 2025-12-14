@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+    <h1 class="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+        Data Purchase Receipt
+    </h1>
+
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">
+        Reference:
+        <span class="font-mono text-slate-800 dark:text-slate-100">
+            {{ tx.reference }}
+        </span>
+        <button type="button"
+            onclick="navigator.clipboard.writeText('{{ tx.reference }}'); NovaToast.show('Reference copied to clipboard', 'success');"
+            class="ml-2 inline-flex items-center px-2 py-0.5 text-[11px] rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100">
+            Copy
+        </button>
+    </p>
+
+    {% with resp=tx.provider_response content=tx.provider_response.content txdata=tx.provider_response.content.transactions %}
+    <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+            <span class="text-slate-500">Network</span>
+            <span class="font-medium">
+                {% if txdata.product_name %}
+                {{ txdata.product_name }}
+                {% else %}
+                {{ tx.description }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="text-slate-500">Phone</span>
+            <span>
+                {% if txdata.unique_element %}
+                {{ txdata.unique_element }}
+                {% else %}
+                {{ tx.provider_response.content.transactions.phone|default:"-" }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="text-slate-500">Amount</span>
+            <span>₦{{ tx.amount|floatformat:2|intcomma }}</span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="text-slate-500">Status</span>
+            <span class="font-semibold capitalize">{{ tx.status }}</span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="text-slate-500">Provider status</span>
+            <span class="capitalize">
+                {{ tx.provider_status|default:"-" }}
+            </span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="text-slate-500">Date</span>
+            <span>{{ tx.timestamp }}</span>
+        </div>
+    </div>
+
+    <p class="mt-6 text-xs text-slate-500 dark:text-slate-400">
+        Keep this reference if you ever need to contact support: <span class="font-mono">{{ tx.reference }}</span>
+    </p>
+    {% endwith %}
+
+    <div class="mt-8 text-center">
+        <a href="{% url 'transaction_history' %}"
+            class="inline-flex items-center px-4 py-2 bg-brand-600 text-white rounded-xl hover:bg-brand-700">
+            Back to History
+        </a>
+    </div>
+</div>
+{% endblock %}

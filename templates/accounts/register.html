@@ -106,6 +106,7 @@
                     </p>
                     {% endif %}
 
+                    {% include 'includes/form_messages.html' %}
                     <form method="POST" action="{% url 'register' %}" class="mt-5 space-y-3">
                         {% csrf_token %}
 

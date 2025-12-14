@@ -11,3 +11,8 @@ wheels/
 
 # sqlite 
 *.sqlite3
+
+# .env secret files
+.env
+
+vtp_pending_recheck.log
