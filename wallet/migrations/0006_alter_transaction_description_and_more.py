@@ -4,20 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('wallet', '0005_remove_transaction_purpose_transaction_reference_and_more'),
+        ("wallet", "0005_remove_transaction_purpose_transaction_reference_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='transaction',
-            name='description',
-            field=models.CharField(help_text="Description (e.g., 'Paystack Deposit', 'MTN Airtime')", max_length=255),
+            model_name="transaction",
+            name="description",
+            field=models.CharField(
+                help_text="Description (e.g., 'Paystack Deposit', 'MTN Airtime')", max_length=255
+            ),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='status',
-            field=models.CharField(choices=[('completed', 'Completed'), ('failed', 'Failed')], default='completed', help_text='Status: completed or failed', max_length=10),
+            model_name="transaction",
+            name="status",
+            field=models.CharField(
+                choices=[("completed", "Completed"), ("failed", "Failed")],
+                default="completed",
+                help_text="Status: completed or failed",
+                max_length=10,
+            ),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('transactions', '0002_transaction_last_requery_at_and_more'),
+        ("transactions", "0002_transaction_last_requery_at_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='transaction',
-            name='token',
+            model_name="transaction",
+            name="token",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
     ]

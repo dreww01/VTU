@@ -1,26 +1,20 @@
+import re
+
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+
 from .models import UserProfile
-import re
 
 
 class RegisterForm(forms.ModelForm):
-    first_name = forms.CharField(
-        required=True,
-        label="First Name"
-    )
+    first_name = forms.CharField(required=True, label="First Name")
 
-    last_name = forms.CharField(
-        required=True,
-        label="Last Name"
-    )
+    last_name = forms.CharField(required=True, label="Last Name")
 
     email = forms.EmailField(
-        required=True,
-        label="Email Address",
-        help_text="Required. Must be unique."
+        required=True, label="Email Address", help_text="Required. Must be unique."
     )
 
     # ✅ Nigerian phone number (extra form field, stored in UserProfile)
@@ -28,23 +22,16 @@ class RegisterForm(forms.ModelForm):
         required=True,
         label="Phone Number",
         help_text="Nigerian number only (e.g. 08031234567 or +2348031234567).",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "e.g. 0803 123 4567"
-            }
-        ),
+        widget=forms.TextInput(attrs={"placeholder": "e.g. 0803 123 4567"}),
     )
 
     password = forms.CharField(
         label="Password",
         widget=forms.PasswordInput,
-        help_text="Minimum 8 characters with strong password rules."
+        help_text="Minimum 8 characters with strong password rules.",
     )
 
-    password_confirm = forms.CharField(
-        widget=forms.PasswordInput,
-        label="Confirm Password"
-    )
+    password_confirm = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
 
     class Meta:
         model = User
@@ -70,9 +57,7 @@ class RegisterForm(forms.ModelForm):
 
         # Validate format: must start with letter, then letters/numbers/underscore (3–20 chars)
         if not re.match(r"^[a-z][a-z0-9_]{2,19}$", username):
-            raise ValidationError(
-                "Enter a valid username."
-            )
+            raise ValidationError("Enter a valid username.")
 
         # Ensure uniqueness (case insensitive)
         if User.objects.filter(username__iexact=username).exists():
@@ -170,6 +155,7 @@ class ProfileForm(forms.ModelForm):
     Form for updating the UserProfile.
     Fields must match real model fields exactly.
     """
+
     class Meta:
         model = UserProfile
         fields = ["first_name", "last_name", "phone_number", "avatar"]

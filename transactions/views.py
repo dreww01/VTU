@@ -1,53 +1,52 @@
 # transactions/views.py
-import logging
 import hashlib
 import hmac
+import logging
 import threading
 from decimal import Decimal, InvalidOperation
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.db import transaction
-from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.utils.html import strip_tags
-
-from wallet.models import Wallet
-from transactions.models import Transaction
-from transactions.services.airtime import (
-    purchase_airtime,
-    InsufficientBalanceError,
-    InvalidNetworkError,
-)
-from transactions.services.electricity import (
-    purchase_electricity,
-    DISCO_SERVICE_ID_MAP,
-    MeterVerificationError,
-)
-from transactions.services.fraud_check import FraudCheckError
-from transactions.providers.exceptions import VTPassError
-from transactions.services.data import purchase_data, DATA_PLANS
 
 # Rate limiting
 from django_ratelimit.decorators import ratelimit
 
-logger = logging.getLogger('transactions')
+from transactions.models import Transaction
+from transactions.providers.exceptions import VTPassError
+from transactions.services.airtime import (
+    InsufficientBalanceError,
+    InvalidNetworkError,
+    purchase_airtime,
+)
+from transactions.services.data import DATA_PLANS, purchase_data
+from transactions.services.electricity import (
+    DISCO_SERVICE_ID_MAP,
+    MeterVerificationError,
+    purchase_electricity,
+)
+from transactions.services.fraud_check import FraudCheckError
+from wallet.models import Wallet
+
+logger = logging.getLogger("transactions")
 
 
 def send_purchase_email(user, tx):
     """Send purchase confirmation email asynchronously (non-blocking)."""
+
     def _send():
         try:
             subject = "Nova VTU Purchase Confirmation"
             html_message = render_to_string(
-                'emails/purchase_confirmation.html',
-                {'user': user, 'transaction': tx}
+                "emails/purchase_confirmation.html", {"user": user, "transaction": tx}
             )
             message = strip_tags(html_message)
 
@@ -71,6 +70,7 @@ def send_purchase_email(user, tx):
 # VTPASS WEBHOOK (NEW - Added for auto-updates)
 # ============================================
 
+
 def verify_vtpass_signature(payload, signature):
     """
     Verify webhook came from VTPass using HMAC-SHA512.
@@ -78,26 +78,24 @@ def verify_vtpass_signature(payload, signature):
     Returns False if signature verification fails.
     Returns None if secret key is not configured (skip verification).
     """
-    vtpass_secret = getattr(settings, 'VTPASS_SECRET_KEY', None)
+    vtpass_secret = getattr(settings, "VTPASS_SECRET_KEY", None)
 
     if not vtpass_secret:
         # No secret key configured - skip verification (sandbox/demo mode)
-        logger.warning('VTPASS_SECRET_KEY not configured - skipping webhook signature verification (sandbox mode)')
+        logger.warning(
+            "VTPASS_SECRET_KEY not configured - skipping webhook signature verification (sandbox mode)"
+        )
         return None  # Signal to skip verification
 
-    secret = vtpass_secret.encode('utf-8')
-    expected_signature = hmac.new(
-        secret,
-        payload.encode('utf-8'),
-        hashlib.sha512
-    ).hexdigest()
+    secret = vtpass_secret.encode("utf-8")
+    expected_signature = hmac.new(secret, payload.encode("utf-8"), hashlib.sha512).hexdigest()
 
     return hmac.compare_digest(expected_signature, signature)
 
 
 @csrf_exempt
 @require_POST
-@ratelimit(key='ip', rate=settings.RATELIMIT_WEBHOOK, method='POST', block=True)
+@ratelimit(key="ip", rate=settings.RATELIMIT_WEBHOOK, method="POST", block=True)
 def vtpass_webhook(request):
     """
     VTPass webhook endpoint - receives transaction status updates.
@@ -106,83 +104,85 @@ def vtpass_webhook(request):
     """
     try:
         # Get signature from VTPass
-        signature = request.headers.get('X-VTPass-Signature', '')
+        signature = request.headers.get("X-VTPass-Signature", "")
 
         # Verify signature (skipped in sandbox/demo mode if no secret key configured)
-        verification_result = verify_vtpass_signature(request.body.decode('utf-8'), signature)
+        verification_result = verify_vtpass_signature(request.body.decode("utf-8"), signature)
 
         if verification_result is None:
             # Sandbox/demo mode - no secret key, skip verification
-            logger.info('Webhook verification skipped (sandbox/demo mode)')
+            logger.info("Webhook verification skipped (sandbox/demo mode)")
         elif verification_result is False:
             # Signature verification failed
-            logger.warning('Invalid VTPass webhook signature')
-            return JsonResponse({'status': 'error', 'message': 'Invalid signature'}, status=401)
-        
+            logger.warning("Invalid VTPass webhook signature")
+            return JsonResponse({"status": "error", "message": "Invalid signature"}, status=401)
+
         # Parse webhook data (VTPass might send as POST data or JSON)
         import json
+
         try:
             data = json.loads(request.body)
-        except:
+        except (json.JSONDecodeError, ValueError):
             data = request.POST.dict()
-        
-        logger.info(f'VTPass webhook received: {data}')
-        
+
+        logger.info(f"VTPass webhook received: {data}")
+
         # Get transaction reference
-        reference = data.get('request_id') or data.get('requestId') or data.get('reference')
-        status = (data.get('status') or '').lower()
-        
+        reference = data.get("request_id") or data.get("requestId") or data.get("reference")
+        status = (data.get("status") or "").lower()
+
         if not reference:
-            logger.error(f'Webhook missing reference: {data}')
-            return JsonResponse({'status': 'error', 'message': 'Missing reference'}, status=400)
-        
+            logger.error(f"Webhook missing reference: {data}")
+            return JsonResponse({"status": "error", "message": "Missing reference"}, status=400)
+
         # Find transaction
         try:
             tx = Transaction.objects.get(reference=reference)
         except Transaction.DoesNotExist:
-            logger.warning(f'Webhook for unknown transaction: {reference}')
-            return JsonResponse({'status': 'error', 'message': 'Transaction not found'}, status=404)
-        
+            logger.warning(f"Webhook for unknown transaction: {reference}")
+            return JsonResponse({"status": "error", "message": "Transaction not found"}, status=404)
+
         # Store old status for logging
         old_status = tx.status
-        
+
         # Update transaction status based on VTPass response
-        if status in ['delivered', 'success', 'successful']:
-            tx.status = 'completed'
-            
+        if status in ["delivered", "success", "successful"]:
+            tx.status = "completed"
+
             # Extract token for electricity if available
-            token = data.get('token') or data.get('purchased_code')
+            token = data.get("token") or data.get("purchased_code")
             if token and not tx.token:
                 tx.token = str(token).replace("Token :", "").strip()
-        
-        elif status in ['failed', 'reversed']:
-            tx.status = 'failed'
-        
+
+        elif status in ["failed", "reversed"]:
+            tx.status = "failed"
+
         else:
-            tx.status = 'pending'
-        
+            tx.status = "pending"
+
         # Save transaction
         tx.save()
-        
-        logger.info(f'Webhook updated {reference}: {old_status} -> {tx.status}')
-        
+
+        logger.info(f"Webhook updated {reference}: {old_status} -> {tx.status}")
+
         # Send email notification if status changed to completed or failed
-        if old_status != tx.status and tx.status in ['completed', 'failed']:
+        if old_status != tx.status and tx.status in ["completed", "failed"]:
             try:
                 send_purchase_email(tx.wallet.user, tx)
             except Exception as e:
-                logger.error(f'Failed to send email for {reference}: {e}')
-        
-        return JsonResponse({'status': 'success', 'message': 'Transaction updated'})
-    
+                logger.error(f"Failed to send email for {reference}: {e}")
+
+        return JsonResponse({"status": "success", "message": "Transaction updated"})
+
     except Exception as e:
-        logger.error(f'Webhook error: {str(e)}', exc_info=True)
-        return JsonResponse({'status': 'error', 'message': 'Internal error'}, status=500)
+        logger.error(f"Webhook error: {str(e)}", exc_info=True)
+        return JsonResponse({"status": "error", "message": "Internal error"}, status=500)
 
 
 # ============================================
 # TRANSACTION HISTORY
 # ============================================
+
 
 @login_required
 def transaction_history(request):
@@ -192,11 +192,15 @@ def transaction_history(request):
     transaction_type_filter = request.GET.get("transaction_type", "")
 
     # Get all user transactions with only needed fields (faster query)
-    transactions_qs = Transaction.objects.filter(
-        wallet__user=request.user
-    ).only(
-        'id', 'reference', 'transaction_type', 'amount', 'status',
-        'timestamp', 'description', 'token'
+    transactions_qs = Transaction.objects.filter(wallet__user=request.user).only(
+        "id",
+        "reference",
+        "transaction_type",
+        "amount",
+        "status",
+        "timestamp",
+        "description",
+        "token",
     )
 
     # Apply filter if specified
@@ -224,13 +228,16 @@ def transaction_history(request):
 # VTU SERVICES (Airtime, Data, Electricity)
 # ============================================
 
+
 @login_required
-@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
+@ratelimit(key="user", rate=settings.RATELIMIT_PURCHASE, method="POST", block=False)
 def buy_airtime(request):
     # Check if rate limited
-    if getattr(request, 'limited', False):
+    if getattr(request, "limited", False):
         logger.warning(f"Rate limit exceeded for airtime purchase: user={request.user.username}")
-        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        messages.error(
+            request, "Too many purchase attempts. Please wait a minute before trying again."
+        )
         return redirect("buy_airtime")
 
     if request.method == "POST":
@@ -269,7 +276,7 @@ def buy_airtime(request):
         except InvalidNetworkError as e:
             messages.error(request, str(e))
             return redirect("buy_airtime")
-        
+
         except FraudCheckError as e:
             messages.error(request, str(e))
             return redirect("buy_airtime")
@@ -286,7 +293,6 @@ def buy_airtime(request):
         status = tx.status
 
         if status == "completed":
-
             # Send the purchase confirmation email after the transaction is completed
             send_purchase_email(request.user, tx)
 
@@ -323,12 +329,14 @@ def buy_airtime(request):
 
 
 @login_required
-@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
+@ratelimit(key="user", rate=settings.RATELIMIT_PURCHASE, method="POST", block=False)
 def buy_data(request):
     # Check if rate limited
-    if getattr(request, 'limited', False):
+    if getattr(request, "limited", False):
         logger.warning(f"Rate limit exceeded for data purchase: user={request.user.username}")
-        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        messages.error(
+            request, "Too many purchase attempts. Please wait a minute before trying again."
+        )
         return redirect("buy_data")
 
     available_networks = ["mtn", "airtel", "glo", "9mobile"]
@@ -357,7 +365,7 @@ def buy_data(request):
         except InvalidNetworkError as e:
             messages.error(request, str(e))
             return redirect("buy_data")
-        
+
         except FraudCheckError as e:
             messages.error(request, str(e))
             return redirect("buy_data")
@@ -369,7 +377,6 @@ def buy_data(request):
         status = tx.status
 
         if status == "completed":
-
             # Send the purchase confirmation email after the transaction is completed
             send_purchase_email(request.user, tx)
 
@@ -428,14 +435,15 @@ def buy_data(request):
     return render(request, "transactions/buy_data.html", context)
 
 
-
 @login_required
-@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
+@ratelimit(key="user", rate=settings.RATELIMIT_PURCHASE, method="POST", block=False)
 def pay_electricity(request):
     # Check if rate limited
-    if getattr(request, 'limited', False):
+    if getattr(request, "limited", False):
         logger.warning(f"Rate limit exceeded for electricity payment: user={request.user.username}")
-        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        messages.error(
+            request, "Too many purchase attempts. Please wait a minute before trying again."
+        )
         return redirect("pay_electricity")
 
     available_discos = DISCO_SERVICE_ID_MAP  # dict: key -> serviceID
@@ -468,7 +476,7 @@ def pay_electricity(request):
         except InvalidNetworkError as e:
             messages.error(request, str(e))
             return redirect("pay_electricity")
-        
+
         except FraudCheckError as e:
             messages.error(request, str(e))
             return redirect("pay_electricity")
@@ -498,11 +506,9 @@ def pay_electricity(request):
             send_purchase_email(request.user, tx)
 
             if vt_token and (meter_type or "").lower() == "prepaid":
-                meter_number_from_desc = tx.description.split("-")[1] if "-" in tx.description else meter_number
                 messages.success(
                     request,
-                    f"Electricity purchase successful for meter {meter_number}. "
-                    f"Token: {vt_token}",
+                    f"Electricity purchase successful for meter {meter_number}. Token: {vt_token}",
                 )
             else:
                 messages.success(
@@ -550,6 +556,7 @@ def electricity_receipt(request, reference):
         return redirect("transaction_history")
 
     return render(request, "transactions/electricity_receipt.html", {"tx": tx})
+
 
 @login_required
 def airtime_receipt(request, reference):

@@ -2,19 +2,19 @@
 
 import time
 from decimal import Decimal
-from typing import Tuple, Dict, Any
+from typing import Any
 
-from django.db import transaction as db_transaction
 from django.contrib.auth import get_user_model
+from django.db import transaction as db_transaction
 
-from wallet.models import Wallet
 from transactions.models import Transaction
 from transactions.providers import get_vtpass_client
 from transactions.services.airtime import (
     InsufficientBalanceError,
     InvalidNetworkError,
 )
-from transactions.services.fraud_check import run_fraud_checks, FraudCheckError
+from transactions.services.fraud_check import run_fraud_checks
+from wallet.models import Wallet
 
 User = get_user_model()
 
@@ -24,7 +24,7 @@ class MeterVerificationError(Exception):
 
 
 # Map our short DISCO keys to VTpass serviceID
-DISCO_SERVICE_ID_MAP: Dict[str, str] = {
+DISCO_SERVICE_ID_MAP: dict[str, str] = {
     "ikedc": "ikeja-electric",
     "ekedc": "eko-electric",
     "aedc": "abuja-electric",
@@ -44,7 +44,7 @@ def purchase_electricity(
     meter_type: str,
     amount: Decimal,
     phone: str,
-) -> Tuple[Transaction, Dict[str, Any]]:
+) -> tuple[Transaction, dict[str, Any]]:
     """
     Purchase electricity via VTpass (prepaid or postpaid).
 
@@ -139,10 +139,7 @@ def purchase_electricity(
 
     # Electricity token (prepaid)
     token = (
-        vtpass_resp.get("token")
-        or vtpass_resp.get("purchased_code")
-        or content.get("token")
-        or ""
+        vtpass_resp.get("token") or vtpass_resp.get("purchased_code") or content.get("token") or ""
     )
     token = str(token or "").strip()
 

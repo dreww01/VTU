@@ -4,23 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('transactions', '0003_transaction_token'),
+        ("transactions", "0003_transaction_token"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AppSettings',
+            name="AppSettings",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('fraud_checks_enabled', models.BooleanField(default=True, help_text='Enable/disable fraud detection checks (transaction limits, hourly limits, etc.)')),
-                ('maintenance_mode', models.BooleanField(default=False, help_text='Put the app in maintenance mode (blocks all transactions)')),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "fraud_checks_enabled",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Enable/disable fraud detection checks (transaction limits, hourly limits, etc.)",
+                    ),
+                ),
+                (
+                    "maintenance_mode",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Put the app in maintenance mode (blocks all transactions)",
+                    ),
+                ),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'App Settings',
-                'verbose_name_plural': 'App Settings',
+                "verbose_name": "App Settings",
+                "verbose_name_plural": "App Settings",
             },
         ),
     ]

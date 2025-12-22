@@ -2,7 +2,9 @@
 """
 Custom middleware for security and rate limiting.
 """
+
 import logging
+
 from django.http import JsonResponse
 from django_ratelimit.exceptions import Ratelimited
 
@@ -32,20 +34,23 @@ class RateLimitMiddleware:
             )
 
             # Check if it's an AJAX/API request
-            if request.headers.get('Accept') == 'application/json' or \
-               request.content_type == 'application/json':
+            if (
+                request.headers.get("Accept") == "application/json"
+                or request.content_type == "application/json"
+            ):
                 return JsonResponse(
                     {
-                        'error': 'rate_limit_exceeded',
-                        'message': 'Too many requests. Please try again later.',
+                        "error": "rate_limit_exceeded",
+                        "message": "Too many requests. Please try again later.",
                     },
-                    status=429
+                    status=429,
                 )
 
             # For regular requests, return a simple 429 response
             from django.shortcuts import render
-            response = render(request, 'errors/429.html', status=429)
-            response['Retry-After'] = '60'  # Suggest retry after 60 seconds
+
+            response = render(request, "errors/429.html", status=429)
+            response["Retry-After"] = "60"  # Suggest retry after 60 seconds
             return response
 
         return None

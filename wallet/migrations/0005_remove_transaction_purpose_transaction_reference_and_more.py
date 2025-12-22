@@ -4,33 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('wallet', '0004_transaction_updated_at_alter_transaction_purpose_and_more'),
+        ("wallet", "0004_transaction_updated_at_alter_transaction_purpose_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='transaction',
-            name='purpose',
+            model_name="transaction",
+            name="purpose",
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='reference',
-            field=models.CharField(blank=True, help_text='Unique reference number (used for Paystack deposits)', max_length=100, null=True, unique=True),
+            model_name="transaction",
+            name="reference",
+            field=models.CharField(
+                blank=True,
+                help_text="Unique reference number (used for Paystack deposits)",
+                max_length=100,
+                null=True,
+                unique=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='description',
-            field=models.CharField(help_text="Description (e.g., 'Paystack Deposit', 'MTN Airtime Purchase')", max_length=255),
+            model_name="transaction",
+            name="description",
+            field=models.CharField(
+                help_text="Description (e.g., 'Paystack Deposit', 'MTN Airtime Purchase')",
+                max_length=255,
+            ),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='transaction_type',
-            field=models.CharField(choices=[('funding', 'Funding'), ('purchase', 'Purchase')], help_text='Type of transaction (funding or purchase)', max_length=10),
+            model_name="transaction",
+            name="transaction_type",
+            field=models.CharField(
+                choices=[("funding", "Funding"), ("purchase", "Purchase")],
+                help_text="Type of transaction (funding or purchase)",
+                max_length=10,
+            ),
         ),
         migrations.AddIndex(
-            model_name='transaction',
-            index=models.Index(fields=['transaction_type'], name='wallet_tran_transac_7debff_idx'),
+            model_name="transaction",
+            index=models.Index(fields=["transaction_type"], name="wallet_tran_transac_7debff_idx"),
         ),
     ]

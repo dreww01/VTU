@@ -38,7 +38,9 @@ jobs:
           version: "latest"
 
       - name: Install dependencies
-        run: uv sync --frozen
+        run: |
+          uv sync --frozen
+          uv sync --extra dev
 
       - name: Run ruff linter
         run: uv run ruff check .

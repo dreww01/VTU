@@ -1,17 +1,14 @@
 # transactions/services/airtime.py
 
 from decimal import Decimal
-from typing import Tuple
 
 from django.db import transaction as db_transaction
 from django.utils import timezone
 
-from wallet.models import Wallet
 from transactions.models import Transaction
 from transactions.providers import get_vtpass_client
-from transactions.providers.exceptions import VTPassError
-from transactions.services.fraud_check import run_fraud_checks, FraudCheckError
-
+from transactions.services.fraud_check import run_fraud_checks
+from wallet.models import Wallet
 
 # Map UI network selection -> VTPass serviceID
 NETWORK_SERVICE_ID_MAP = {
@@ -45,7 +42,7 @@ def purchase_airtime(
     network: str,
     phone: str,
     amount: Decimal,
-) -> Tuple[Transaction, dict]:
+) -> tuple[Transaction, dict]:
     """
     Core airtime purchase flow.
 
@@ -89,9 +86,9 @@ def purchase_airtime(
 
         tx = Transaction.objects.create(
             wallet=wallet,
-            transaction_type="purchase",   # must exist in your choices
+            transaction_type="purchase",  # must exist in your choices
             amount=amount,
-            status="pending",              # must exist in your choices
+            status="pending",  # must exist in your choices
             reference=request_id,
             description=f"Airtime VTU - {network_key.upper()} to {phone} via VTPass",
         )

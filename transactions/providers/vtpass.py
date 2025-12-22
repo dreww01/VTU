@@ -1,7 +1,7 @@
 # transactions/providers/vtpass.py
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import httpx
 
@@ -29,7 +29,7 @@ class VTPassClient:
         api_key: str,
         secret_key: str,
         connect_timeout: float = 5.0,  # Time to establish connection
-        read_timeout: float = 15.0,     # Time to receive response
+        read_timeout: float = 15.0,  # Time to receive response
     ):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
@@ -69,7 +69,7 @@ class VTPassClient:
         path = path.lstrip("/")
         return f"{self.base_url}/{path}"
 
-    def _post(self, path: str, json: Dict[str, Any]) -> Dict[str, Any]:
+    def _post(self, path: str, json: dict[str, Any]) -> dict[str, Any]:
         url = self._url(path)
         try:
             response = self.client.post(url, json=json)
@@ -87,7 +87,9 @@ class VTPassClient:
             data = response.json()
         except ValueError as exc:
             logger.error("VTPass returned non-JSON response: %s", response.text[:300])
-            raise VTPassError("Invalid response from VTPass", payload={"raw": response.text}) from exc
+            raise VTPassError(
+                "Invalid response from VTPass", payload={"raw": response.text}
+            ) from exc
 
         logger.debug("VTPass response from %s: %s", url, data)
         return data
@@ -100,8 +102,7 @@ class VTPassClient:
         phone: str,
         amount: str | int | float,
         request_id: str,
-    ) -> Dict[str, Any]:
-
+    ) -> dict[str, Any]:
         payload = {
             "serviceID": service_id,
             "phone": phone,
@@ -124,8 +125,7 @@ class VTPassClient:
 
         return data
 
-
-    def requery(self, request_id: str) -> Dict[str, Any]:
+    def requery(self, request_id: str) -> dict[str, Any]:
         """
         Requery a previous transaction by our request_id.
         """
@@ -137,7 +137,7 @@ class VTPassClient:
 
         return data
 
-# -------- Data services --------
+    # -------- Data services --------
     def buy_data(
         self,
         service_id: str,
@@ -177,7 +177,6 @@ class VTPassClient:
 
         return data
 
-    
     def verify_meter(self, service_id: str, meter_number: str, meter_type: str) -> dict:
         """
         Verify a prepaid/postpaid meter number via VTpass merchant-verify API.
@@ -228,5 +227,3 @@ class VTPassClient:
             data["code"] = "ERROR"
 
         return data
-
-

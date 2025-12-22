@@ -20,3 +20,38 @@ dependencies = [
     "google-cloud-storage>=2.18.2",
     "django-storages[google]>=1.14.4",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.9.0",
+    "django-stubs>=5.1.1",
+    "mypy>=1.15.0",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "B904",  # raise from None
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports
+"*/migrations/*.py" = ["E501", "F401", "F403", "F405"]  # migration files
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

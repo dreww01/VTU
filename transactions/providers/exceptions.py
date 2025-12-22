@@ -1,5 +1,6 @@
 # transactions/providers/exceptions.py
 
+
 class ProviderError(Exception):
     """Base exception for external provider issues."""
 

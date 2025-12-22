@@ -1,16 +1,19 @@
 import logging
 from datetime import timedelta
-from django.utils import timezone
-from transactions.models import Transaction
-from transactions.services.vtu_service import check_and_get_transaction_status
-from transactions.providers.exceptions import VTPassError
 
-logger = logging.getLogger('transactions')
+from django.utils import timezone
+
+from transactions.models import Transaction
+from transactions.providers.exceptions import VTPassError
+from transactions.services.vtu_service import check_and_get_transaction_status
+
+logger = logging.getLogger("transactions")
+
 
 def recheck_pending_vtu(max_age_minutes=10):
     """
     Recheck pending VTU transactions that are older than max_age_minutes.
-    
+
     Logic:
     1. If transaction doesn't exist on VTPass -> Mark as FAILED
     2. If transaction exists on VTPass -> Update status based on VTPass status
@@ -47,19 +50,19 @@ def recheck_pending_vtu(max_age_minutes=10):
                 tx.save()
                 stats["failed"] += 1
                 logger.info(f"Transaction {tx.reference} not found on VTPass. Marked as failed.")
-            
+
             elif vtpass_status == "completed":
                 tx.status = "completed"
                 tx.save()
                 stats["completed"] += 1
                 logger.info(f"Transaction {tx.reference} completed on VTPass.")
-            
+
             elif vtpass_status == "failed":
                 tx.status = "failed"
                 tx.save()
                 stats["failed"] += 1
                 logger.info(f"Transaction {tx.reference} failed on VTPass.")
-            
+
             else:  # vtpass_status == "pending"
                 stats["still_pending"] += 1
                 logger.info(f"Transaction {tx.reference} still pending on VTPass.")
@@ -67,7 +70,7 @@ def recheck_pending_vtu(max_age_minutes=10):
         except VTPassError as e:
             stats["errors"] += 1
             logger.error(f"Error checking transaction {tx.reference}: {e}")
-        
+
         except Exception as e:
             stats["errors"] += 1
             logger.error(f"Unexpected error for transaction {tx.reference}: {e}")

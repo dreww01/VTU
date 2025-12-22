@@ -4,25 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0002_userprofile_avatar_userprofile_full_name_and_more'),
+        ("accounts", "0002_userprofile_avatar_userprofile_full_name_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='userprofile',
-            name='first_name',
-            field=models.CharField(blank=True, help_text='First name (kept in sync with the User table where possible).', max_length=150),
+            model_name="userprofile",
+            name="first_name",
+            field=models.CharField(
+                blank=True,
+                help_text="First name (kept in sync with the User table where possible).",
+                max_length=150,
+            ),
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='last_name',
-            field=models.CharField(blank=True, help_text='Last name (kept in sync with the User table where possible).', max_length=150),
+            model_name="userprofile",
+            name="last_name",
+            field=models.CharField(
+                blank=True,
+                help_text="Last name (kept in sync with the User table where possible).",
+                max_length=150,
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='full_name',
-            field=models.CharField(blank=True, help_text='Full name for display on the dashboard.', max_length=300),
+            model_name="userprofile",
+            name="full_name",
+            field=models.CharField(
+                blank=True, help_text="Full name for display on the dashboard.", max_length=300
+            ),
         ),
     ]

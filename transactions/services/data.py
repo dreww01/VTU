@@ -2,26 +2,24 @@
 
 import time
 from decimal import Decimal
-from typing import Tuple, Dict, Any
-
-from django.db import transaction as db_transaction
+from typing import Any
 
 from django.contrib.auth import get_user_model
+from django.db import transaction as db_transaction
 
-from wallet.models import Wallet
 from transactions.models import Transaction
 from transactions.providers import get_vtpass_client
 from transactions.services.airtime import (
     InsufficientBalanceError,
     InvalidNetworkError,
 )
-from transactions.services.fraud_check import run_fraud_checks, FraudCheckError
-
+from transactions.services.fraud_check import run_fraud_checks
+from wallet.models import Wallet
 
 User = get_user_model()
 
 # Map our network keys to VTPass service IDs for data
-NETWORK_DATA_SERVICE_ID_MAP: Dict[str, str] = {
+NETWORK_DATA_SERVICE_ID_MAP: dict[str, str] = {
     "mtn": "mtn-data",
     "airtel": "airtel-data",
     "glo": "glo-data",
@@ -29,7 +27,7 @@ NETWORK_DATA_SERVICE_ID_MAP: Dict[str, str] = {
 }
 
 # Simple in-code plan catalog for now (you can later fetch from VTPass variations API)
-DATA_PLANS: Dict[str, list[dict]] = {
+DATA_PLANS: dict[str, list[dict]] = {
     "mtn": [
         {
             "code": "mtn-10mb-100",
@@ -101,7 +99,6 @@ DATA_PLANS: Dict[str, list[dict]] = {
 }
 
 
-
 def get_data_plans_for_network(network: str) -> list[dict]:
     """
     Return list of plans for a given network key: 'mtn', 'airtel', 'glo', '9mobile'.
@@ -129,7 +126,7 @@ def purchase_data(
     network: str,
     phone: str,
     variation_code: str,
-) -> Tuple[Transaction, Dict[str, Any]]:
+) -> tuple[Transaction, dict[str, Any]]:
     """
     Purchase data using VTPass.
 

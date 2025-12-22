@@ -4,20 +4,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('wallet', '0002_alter_transaction_options_transaction_description_and_more'),
+        ("wallet", "0002_alter_transaction_options_transaction_description_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='transaction',
-            name='purpose',
-            field=models.CharField(choices=[('funding', 'Funding'), ('purchase', 'Purchase'), ('withdrawal', 'Withdrawal')], default='purchase', help_text='Purpose of the transaction (e.g. funding, purchase, withdrawal)', max_length=20),
+            model_name="transaction",
+            name="purpose",
+            field=models.CharField(
+                choices=[
+                    ("funding", "Funding"),
+                    ("purchase", "Purchase"),
+                    ("withdrawal", "Withdrawal"),
+                ],
+                default="purchase",
+                help_text="Purpose of the transaction (e.g. funding, purchase, withdrawal)",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='transaction',
-            name='transaction_type',
-            field=models.CharField(choices=[('credit', 'Credit'), ('debit', 'Debit'), ('withdrawal', 'Withdrawal')], help_text='Type of transaction', max_length=10),
+            model_name="transaction",
+            name="transaction_type",
+            field=models.CharField(
+                choices=[("credit", "Credit"), ("debit", "Debit"), ("withdrawal", "Withdrawal")],
+                help_text="Type of transaction",
+                max_length=10,
+            ),
         ),
     ]

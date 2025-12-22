@@ -11,10 +11,11 @@ class UserProfile(models.Model):
     Stores extra information about a user that doesn't belong directly on the
     core User model (AUTH_USER_MODEL).
     """
+
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,     # supports custom user models
-        on_delete=models.CASCADE,     # delete profile if user is deleted
-        related_name="profile",       # access via user.profile
+        settings.AUTH_USER_MODEL,  # supports custom user models
+        on_delete=models.CASCADE,  # delete profile if user is deleted
+        related_name="profile",  # access via user.profile
     )
 
     # NEW: store first & last name (to tally with auth.User)
@@ -101,13 +102,12 @@ class UserProfile(models.Model):
 
     # NEW: upload avatar + size validation
     avatar = models.ImageField(
-    upload_to="avatars/",
-    blank=True,
-    null=True,
-    validators=[validate_avatar_size],   # ✓ file-size validation
-    help_text="Max size: 2MB",
-)
-
+        upload_to="avatars/",
+        blank=True,
+        null=True,
+        validators=[validate_avatar_size],  # ✓ file-size validation
+        help_text="Max size: 2MB",
+    )
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -121,4 +121,3 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     profile, _ = UserProfile.objects.get_or_create(user=instance)
     profile.sync_from_user()
     profile.save()
-

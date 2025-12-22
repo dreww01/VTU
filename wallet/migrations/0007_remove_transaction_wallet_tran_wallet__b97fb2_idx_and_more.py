@@ -4,25 +4,24 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('wallet', '0006_alter_transaction_description_and_more'),
+        ("wallet", "0006_alter_transaction_description_and_more"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='transaction',
-            name='wallet_tran_wallet__b97fb2_idx',
+            model_name="transaction",
+            name="wallet_tran_wallet__b97fb2_idx",
         ),
         migrations.RemoveIndex(
-            model_name='transaction',
-            name='wallet_tran_status_a49b73_idx',
+            model_name="transaction",
+            name="wallet_tran_status_a49b73_idx",
         ),
         migrations.RemoveIndex(
-            model_name='transaction',
-            name='wallet_tran_transac_7debff_idx',
+            model_name="transaction",
+            name="wallet_tran_transac_7debff_idx",
         ),
         migrations.DeleteModel(
-            name='Transaction',
+            name="Transaction",
         ),
     ]
