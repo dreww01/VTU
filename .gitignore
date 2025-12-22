@@ -16,3 +16,14 @@ wheels/
 .env
 
 vtp_pending_recheck.log
+
+.claude
+claude
+nul
+
+# User-uploaded media files
+media/
+
+# Static files collected by Django
+staticfiles/
+static_root/

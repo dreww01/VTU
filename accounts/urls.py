@@ -19,6 +19,9 @@ urlpatterns = [
     # Route for confirming the password reset code and setting the new password (step 2)
     path('password_reset_confirm/', views.password_reset_confirm, name='password_reset_confirm'),
 
-        # NEW: profile page
+    # Profile page
     path("account/profile/", views.profile_view, name="profile"),
+
+    # VTU Services Hub
+    path('services/', views.vtu_services_view, name='vtu_services'),
 ]

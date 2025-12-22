@@ -1,0 +1,101 @@
+# =============================================================================
+# Nova VTU - Docker Ignore File
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+.eggs
+*.egg
+.mypy_cache
+.pytest_cache
+.coverage
+htmlcov
+.tox
+.nox
+
+# Virtual environments
+.venv
+venv
+ENV
+env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Environment files (will be mounted separately)
+.env
+.env.*
+!.env.example
+
+# Local database
+db.sqlite3
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Media files (will be mounted as volume)
+media/
+
+# Static files (collected during build)
+staticfiles/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+conftest.py
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Docker files (not needed inside container)
+docker-compose*.yml
+Dockerfile*
+
+# Nginx config (mounted separately)
+nginx/
+
+# Claude/AI context
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Cache
+.cache
+
+# Backup files
+backups/
+*.sql
+*.sql.gz

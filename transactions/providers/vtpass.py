@@ -1,50 +1,85 @@
 # transactions/providers/vtpass.py
 
 import logging
-from dataclasses import dataclass
 from typing import Any, Dict
 
-import requests
+import httpx
 
 from .exceptions import VTPassError
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
 class VTPassClient:
     """
-    Thin HTTP client around the VTPass API.
+    HTTP client for VTPass API with connection pooling and optimized timeouts.
+
+    Uses httpx for better performance:
+    - Connection pooling (reuses TCP connections)
+    - Separate connect/read timeouts
+    - HTTP/2 support (if server supports it)
     """
 
-    base_url: str
-    api_key: str
-    secret_key: str
-    timeout: int = 15  # seconds
+    # Singleton httpx client for connection pooling across requests
+    _client: httpx.Client | None = None
 
-    @property
-    def _headers(self) -> Dict[str, str]:
-        return {
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        secret_key: str,
+        connect_timeout: float = 5.0,  # Time to establish connection
+        read_timeout: float = 15.0,     # Time to receive response
+    ):
+        self.base_url = base_url.rstrip("/")
+        self.api_key = api_key
+        self.secret_key = secret_key
+        self.timeout = httpx.Timeout(
+            connect=connect_timeout,
+            read=read_timeout,
+            write=5.0,
+            pool=5.0,
+        )
+        self._headers = {
             "api-key": self.api_key,
             "secret-key": self.secret_key,
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
 
+    @property
+    def client(self) -> httpx.Client:
+        """
+        Lazy-initialize a shared httpx client with connection pooling.
+        The client is shared across all VTPassClient instances for maximum reuse.
+        """
+        if VTPassClient._client is None or VTPassClient._client.is_closed:
+            VTPassClient._client = httpx.Client(
+                timeout=self.timeout,
+                headers=self._headers,
+                limits=httpx.Limits(
+                    max_keepalive_connections=10,
+                    max_connections=20,
+                    keepalive_expiry=30.0,
+                ),
+            )
+        return VTPassClient._client
+
     def _url(self, path: str) -> str:
         path = path.lstrip("/")
-        return f"{self.base_url.rstrip('/')}/{path}"
+        return f"{self.base_url}/{path}"
 
     def _post(self, path: str, json: Dict[str, Any]) -> Dict[str, Any]:
         url = self._url(path)
         try:
-            response = requests.post(
-                url,
-                json=json,
-                headers=self._headers,
-                timeout=self.timeout,
-            )
-        except requests.RequestException as exc:
+            response = self.client.post(url, json=json)
+        except httpx.ConnectTimeout as exc:
+            logger.error("VTPass connection timeout: %s", url)
+            raise VTPassError("Connection to VTPass timed out. Please try again.") from exc
+        except httpx.ReadTimeout as exc:
+            logger.error("VTPass read timeout: %s", url)
+            raise VTPassError("VTPass took too long to respond. Please try again.") from exc
+        except httpx.HTTPError as exc:
             logger.exception("VTPass network error")
             raise VTPassError("Network error while contacting VTPass") from exc
 

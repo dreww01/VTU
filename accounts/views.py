@@ -33,7 +33,7 @@ import logging
 
 from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
 
-from .models import UserProfile 
+from .models import UserProfile
 
 # FORMS
 from .forms import RegisterForm, ProfileForm
@@ -43,6 +43,10 @@ from wallet.models import Wallet
 
 from decimal import Decimal, InvalidOperation
 
+# Rate limiting
+from django_ratelimit.decorators import ratelimit
+from django_ratelimit.exceptions import Ratelimited
+
 
 
 
@@ -50,12 +54,20 @@ from decimal import Decimal, InvalidOperation
 logger = logging.getLogger(__name__)
 
 # Registration view
+@ratelimit(key='ip', rate=settings.RATELIMIT_REGISTER, method='POST', block=False)
 def register_view(request):
     """
     Handles user registration using RegisterForm.
     - Secure user registration flow.
     - Password hashed, confirmed, and stored.
+    - Rate limited to prevent abuse.
     """
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for registration from IP: {request.META.get('REMOTE_ADDR')}")
+        messages.error(request, "Too many registration attempts. Please wait a minute before trying again.")
+        return render(request, 'accounts/register.html', {'form': RegisterForm()})
+
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -94,11 +106,19 @@ def logout_view(request):
 
 
 # Login view
+@ratelimit(key='ip', rate=settings.RATELIMIT_LOGIN, method='POST', block=False)
 def login_view(request):
     """
     Handles user login.
     - Authenticates the user with proper validation and logging.
+    - Rate limited to prevent brute force attacks.
     """
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for login from IP: {request.META.get('REMOTE_ADDR')}")
+        messages.error(request, "Too many login attempts. Please wait a minute before trying again.")
+        return render(request, 'accounts/login.html', {'form': AuthenticationForm()})
+
     if request.user.is_authenticated:
         return redirect('dashboard')
     
@@ -137,7 +157,8 @@ def dashboard_view(request):
     transactions = []  # Default value if no transactions are found
 
     try:
-        wallet = Wallet.objects.get(user=request.user)
+        # Use select_related to avoid extra query for user
+        wallet = Wallet.objects.select_related('user').get(user=request.user)
 
         # Ensure the wallet balance is valid (strict validation)
         if wallet.balance is None or not isinstance(wallet.balance, (int, float, Decimal)):
@@ -153,8 +174,10 @@ def dashboard_view(request):
             logger.error(f"Invalid balance value for user {request.user.username}: {wallet.balance}")
             balance = Decimal('0.00')  # Fallback to 0 if invalid value
 
-        # Fetch the latest transactions (latest 5)
-        transactions = wallet.transaction_set.all().order_by('-timestamp')[:5]
+        # Fetch the latest transactions (latest 5) with only needed fields
+        transactions = wallet.transaction_set.only(
+            'id', 'reference', 'transaction_type', 'amount', 'status', 'timestamp', 'description'
+        ).order_by('-timestamp')[:5]
 
     except Wallet.DoesNotExist:
         # Handle case where the wallet does not exist (should not happen since wallet is created on signup)
@@ -171,11 +194,19 @@ def dashboard_view(request):
 
 
 # Password reset view (step 1: send reset code to email)
+@ratelimit(key='ip', rate=settings.RATELIMIT_PASSWORD_RESET, method='POST', block=False)
 def send_reset_code(request):
     """
     Sends a password reset code to the user's email address.
     - Validates the email address and sends a secure 6-digit reset code.
+    - Rate limited to prevent email enumeration and abuse.
     """
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for password reset from IP: {request.META.get('REMOTE_ADDR')}")
+        messages.error(request, "Too many password reset requests. Please wait a minute before trying again.")
+        return render(request, 'accounts/password_reset.html')
+
     if request.method == 'POST':
         email = request.POST.get('email')
         try:
@@ -334,7 +365,7 @@ def profile_view(request):
         form = ProfileForm(request.POST, request.FILES, instance=profile)
 
         if form.is_valid():
-            
+
             # SYNC UserProfile → User
             request.user.first_name = profile.first_name
             request.user.last_name  = profile.last_name
@@ -355,3 +386,23 @@ def profile_view(request):
         "form": form,
     }
     return render(request, "accounts/profile.html", context)
+
+
+@login_required
+def vtu_services_view(request):
+    """
+    VTU Services Hub - Shows all available VTU services.
+    - Airtime purchase
+    - Data bundles
+    - Electricity/TV bills
+    """
+    try:
+        wallet = Wallet.objects.get(user=request.user)
+        balance = Decimal(wallet.balance)
+    except Wallet.DoesNotExist:
+        logger.error(f"Wallet does not exist for user {request.user.username}")
+        balance = Decimal('0.00')
+
+    return render(request, 'accounts/vtu_services.html', {
+        'wallet_balance': balance,
+    })

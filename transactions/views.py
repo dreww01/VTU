@@ -1,8 +1,9 @@
 # transactions/views.py
-from decimal import Decimal, InvalidOperation
 import logging
 import hashlib
 import hmac
+import threading
+from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -12,6 +13,10 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.utils.html import strip_tags
 
 from wallet.models import Wallet
 from transactions.models import Transaction
@@ -29,26 +34,37 @@ from transactions.services.fraud_check import FraudCheckError
 from transactions.providers.exceptions import VTPassError
 from transactions.services.data import purchase_data, DATA_PLANS
 
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.utils.html import strip_tags
+# Rate limiting
+from django_ratelimit.decorators import ratelimit
 
 logger = logging.getLogger('transactions')
 
 
-def send_purchase_email(user, transaction):
-    subject = "Nova VTU Purchase Confirmation"
-    html_message = render_to_string('emails/purchase_confirmation.html', {'user': user, 'transaction': transaction})
-    message = strip_tags(html_message)  # Plain text fallback
+def send_purchase_email(user, tx):
+    """Send purchase confirmation email asynchronously (non-blocking)."""
+    def _send():
+        try:
+            subject = "Nova VTU Purchase Confirmation"
+            html_message = render_to_string(
+                'emails/purchase_confirmation.html',
+                {'user': user, 'transaction': tx}
+            )
+            message = strip_tags(html_message)
 
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        html_message=html_message,
-    )
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                html_message=html_message,
+            )
+            logger.info(f"Purchase email sent to {user.email} for ref={tx.reference}")
+        except Exception as e:
+            logger.error(f"Failed to send purchase email to {user.email}: {e}")
+
+    # Send in background thread to avoid blocking the response
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
 
 
 # ============================================
@@ -58,35 +74,48 @@ def send_purchase_email(user, transaction):
 def verify_vtpass_signature(payload, signature):
     """
     Verify webhook came from VTPass using HMAC-SHA512.
-    Only if you have VTPASS_SECRET_KEY configured.
+    Returns True if signature is valid or if verification is skipped (sandbox mode).
+    Returns False if signature verification fails.
+    Returns None if secret key is not configured (skip verification).
     """
-    if not hasattr(settings, 'VTPASS_SECRET_KEY') or not settings.VTPASS_SECRET_KEY:
-        # If no secret key configured, skip verification (not recommended for production)
-        return True
-    
-    secret = settings.VTPASS_SECRET_KEY.encode('utf-8')
+    vtpass_secret = getattr(settings, 'VTPASS_SECRET_KEY', None)
+
+    if not vtpass_secret:
+        # No secret key configured - skip verification (sandbox/demo mode)
+        logger.warning('VTPASS_SECRET_KEY not configured - skipping webhook signature verification (sandbox mode)')
+        return None  # Signal to skip verification
+
+    secret = vtpass_secret.encode('utf-8')
     expected_signature = hmac.new(
         secret,
         payload.encode('utf-8'),
         hashlib.sha512
     ).hexdigest()
-    
+
     return hmac.compare_digest(expected_signature, signature)
 
 
 @csrf_exempt
 @require_POST
+@ratelimit(key='ip', rate=settings.RATELIMIT_WEBHOOK, method='POST', block=True)
 def vtpass_webhook(request):
     """
     VTPass webhook endpoint - receives transaction status updates.
     Give this URL to VTPass: https://yourdomain.com/transactions/webhook/vtpass/
+    Rate limited to prevent DDoS attacks.
     """
     try:
-        # Get signature if VTPass sends it
+        # Get signature from VTPass
         signature = request.headers.get('X-VTPass-Signature', '')
-        
-        # Verify signature (optional - only if you have secret key)
-        if signature and not verify_vtpass_signature(request.body.decode('utf-8'), signature):
+
+        # Verify signature (skipped in sandbox/demo mode if no secret key configured)
+        verification_result = verify_vtpass_signature(request.body.decode('utf-8'), signature)
+
+        if verification_result is None:
+            # Sandbox/demo mode - no secret key, skip verification
+            logger.info('Webhook verification skipped (sandbox/demo mode)')
+        elif verification_result is False:
+            # Signature verification failed
             logger.warning('Invalid VTPass webhook signature')
             return JsonResponse({'status': 'error', 'message': 'Invalid signature'}, status=401)
         
@@ -162,8 +191,13 @@ def transaction_history(request):
     # Get filter parameter
     transaction_type_filter = request.GET.get("transaction_type", "")
 
-    # Get all user transactions
-    transactions_qs = Transaction.objects.filter(wallet__user=request.user)
+    # Get all user transactions with only needed fields (faster query)
+    transactions_qs = Transaction.objects.filter(
+        wallet__user=request.user
+    ).only(
+        'id', 'reference', 'transaction_type', 'amount', 'status',
+        'timestamp', 'description', 'token'
+    )
 
     # Apply filter if specified
     if transaction_type_filter:
@@ -180,7 +214,7 @@ def transaction_history(request):
     context = {
         "transactions": page_obj,  # Paginated transactions
         "transaction_type_filter": transaction_type_filter,
-        "total_count": transactions_qs.count(),  # Total transactions
+        "total_count": paginator.count,  # Use paginator.count (cached) instead of .count()
     }
 
     return render(request, "transactions/transaction_history.html", context)
@@ -191,7 +225,14 @@ def transaction_history(request):
 # ============================================
 
 @login_required
+@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
 def buy_airtime(request):
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for airtime purchase: user={request.user.username}")
+        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        return redirect("buy_airtime")
+
     if request.method == "POST":
         network = (request.POST.get("network") or "").strip()  # mtn, glo, airtel, 9mobile
         phone = (request.POST.get("phone") or "").strip()
@@ -282,7 +323,13 @@ def buy_airtime(request):
 
 
 @login_required
+@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
 def buy_data(request):
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for data purchase: user={request.user.username}")
+        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        return redirect("buy_data")
 
     available_networks = ["mtn", "airtel", "glo", "9mobile"]
 
@@ -383,7 +430,14 @@ def buy_data(request):
 
 
 @login_required
+@ratelimit(key='user', rate=settings.RATELIMIT_PURCHASE, method='POST', block=False)
 def pay_electricity(request):
+    # Check if rate limited
+    if getattr(request, 'limited', False):
+        logger.warning(f"Rate limit exceeded for electricity payment: user={request.user.username}")
+        messages.error(request, "Too many purchase attempts. Please wait a minute before trying again.")
+        return redirect("pay_electricity")
+
     available_discos = DISCO_SERVICE_ID_MAP  # dict: key -> serviceID
 
     if request.method == "POST":

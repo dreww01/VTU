@@ -1,0 +1,184 @@
+# =============================================================================
+# Nova VTU - Docker Compose Configuration
+# Usage:
+#   Development: docker-compose up
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Django Web Application
+  # ---------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nova-vtu-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://nova_vtu:nova_vtu_password@db:5432/nova_vtu
+      - DEBUG=False
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nova-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: nova-vtu-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nova_vtu
+      POSTGRES_USER: nova_vtu
+      POSTGRES_PASSWORD: nova_vtu_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nova-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nova_vtu -d nova_vtu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Redis Cache (for rate limiting and sessions)
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nova-vtu-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - nova-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # ---------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: nova-vtu-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_conf:/etc/letsencrypt:ro
+    depends_on:
+      - web
+    networks:
+      - nova-network
+
+  # ---------------------------------------------------------------------------
+  # Certbot for SSL Certificates
+  # ---------------------------------------------------------------------------
+  certbot:
+    image: certbot/certbot
+    container_name: nova-vtu-certbot
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - nova-network
+
+  # ---------------------------------------------------------------------------
+  # Database Backup Service (runs daily at 2 AM)
+  # ---------------------------------------------------------------------------
+  backup:
+    image: postgres:16-alpine
+    container_name: nova-vtu-backup
+    restart: "no"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: nova_vtu
+      POSTGRES_USER: nova_vtu
+      POSTGRES_PASSWORD: nova_vtu_password
+      BACKUP_DIR: /backups
+      RETENTION_DAYS: 7
+      # Uncomment for S3 uploads:
+      # S3_BUCKET: ${S3_BUCKET:-}
+      # AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      # AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      # AWS_REGION: ${AWS_REGION:-us-east-1}
+    volumes:
+      - ./scripts/backup:/scripts:ro
+      - backup_data:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - nova-network
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache bash gzip
+        chmod +x /scripts/backup.sh
+        echo "Backup service ready. Run: docker exec nova-vtu-backup /scripts/backup.sh"
+        # For cron-based scheduling, uncomment below:
+        # echo "0 2 * * * /scripts/backup.sh >> /var/log/backup.log 2>&1" | crontab -
+        # crond -f
+        tail -f /dev/null
+    profiles:
+      - backup
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+  logs_volume:
+    driver: local
+  certbot_www:
+    driver: local
+  certbot_conf:
+    driver: local
+  backup_data:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  nova-network:
+    driver: bridge

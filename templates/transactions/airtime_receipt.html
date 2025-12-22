@@ -23,7 +23,7 @@
     <div class="space-y-2 text-sm">
         <div class="flex justify-between">
             <span class="text-slate-500">Network</span>
-            <span class="font-medium">
+            <span class="font-medium text-slate-900 dark:text-white">
                 {% if txdata.product_name %}
                 {{ txdata.product_name }}
                 {% else %}
@@ -34,7 +34,7 @@
 
         <div class="flex justify-between">
             <span class="text-slate-500">Phone</span>
-            <span>
+            <span class="text-slate-900 dark:text-white">
                 {% if txdata.unique_element %}
                 {{ txdata.unique_element }}
                 {% else %}
@@ -45,24 +45,24 @@
 
         <div class="flex justify-between">
             <span class="text-slate-500">Amount</span>
-            <span>₦{{ tx.amount|floatformat:2|intcomma }}</span>
+            <span class="text-slate-900 dark:text-white">₦{{ tx.amount|floatformat:2|intcomma }}</span>
         </div>
 
         <div class="flex justify-between">
             <span class="text-slate-500">Status</span>
-            <span class="font-semibold capitalize">{{ tx.status }}</span>
+            <span class="font-semibold capitalize text-slate-900 dark:text-white">{{ tx.status }}</span>
         </div>
 
         <div class="flex justify-between">
             <span class="text-slate-500">Provider status</span>
-            <span class="capitalize">
+            <span class="capitalize text-slate-900 dark:text-white">
                 {{ tx.provider_status|default:"-" }}
             </span>
         </div>
 
         <div class="flex justify-between">
             <span class="text-slate-500">Date</span>
-            <span>{{ tx.timestamp }}</span>
+            <span class="text-slate-900 dark:text-white">{{ tx.timestamp }}</span>
         </div>
     </div>
 

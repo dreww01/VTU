@@ -36,7 +36,7 @@
                 <span>Fund Wallet</span>
             </a>
             <!-- VTU button -->
-            <a href=""
+            <a href="{% url 'vtu_services' %}"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-300
                        hover:border-slate-400 text-sm text-slate-800 bg-white
                        dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-200 dark:bg-slate-900 transition">
@@ -320,24 +320,25 @@
                     Fast shortcuts to your most common operations.
                 </p>
                 <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    <button class="group flex flex-col items-start gap-1 rounded-xl
-                               bg-slate-900 text-white border border-slate-900
-                               hover:bg-slate-800 hover:-translate-y-0.5
-                               dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
-                               px-3 py-3 transition transform">
+                    <a href="{% url 'fund_wallet' %}"
+                       class="group flex flex-col items-start gap-1 rounded-xl
+                              bg-slate-900 text-white border border-slate-900
+                              hover:bg-slate-800 hover:-translate-y-0.5
+                              dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
+                              px-3 py-3 transition transform">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
                                    bg-slate-800 text-slate-100 text-[11px]">
                             ₦
                         </span>
                         <span class="text-[11px] text-slate-200 dark:text-slate-300">Wallet</span>
-                        <a href="{% url 'fund_wallet' %}" class="font-medium text-slate-50 dark:text-slate-50">Fund
-                            now</a>
-                    </button>
+                        <span class="font-medium text-slate-50 dark:text-slate-50">Fund now</span>
+                    </a>
 
-                    <button class="group flex flex-col items-start gap-1 rounded-xl
-                               bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
-                               dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
-                               px-3 py-3 transition transform">
+                    <a href="{% url 'buy_airtime' %}"
+                       class="group flex flex-col items-start gap-1 rounded-xl
+                              bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
+                              dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
+                              px-3 py-3 transition transform">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
                                    bg-slate-900 text-slate-50 text-[11px]
                                    dark:bg-slate-700 dark:text-slate-100">
@@ -345,12 +346,13 @@
                         </span>
                         <span class="text-[11px] text-slate-500 dark:text-slate-400">VTU</span>
                         <span class="font-medium text-slate-800 dark:text-slate-100">Buy airtime</span>
-                    </button>
+                    </a>
 
-                    <button class="group flex flex-col items-start gap-1 rounded-xl
-                               bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
-                               dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
-                               px-3 py-3 transition transform">
+                    <a href="{% url 'buy_data' %}"
+                       class="group flex flex-col items-start gap-1 rounded-xl
+                              bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
+                              dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
+                              px-3 py-3 transition transform">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
                                    bg-slate-900 text-slate-50 text-[11px]
                                    dark:bg-slate-700 dark:text-slate-100">
@@ -358,12 +360,13 @@
                         </span>
                         <span class="text-[11px] text-slate-500 dark:text-slate-400">VTU</span>
                         <span class="font-medium text-slate-800 dark:text-slate-100">Buy data</span>
-                    </button>
+                    </a>
 
-                    <button class="group flex flex-col items-start gap-1 rounded-xl
-                               bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
-                               dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
-                               px-3 py-3 transition transform">
+                    <a href="{% url 'pay_electricity' %}"
+                       class="group flex flex-col items-start gap-1 rounded-xl
+                              bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:-translate-y-0.5
+                              dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700
+                              px-3 py-3 transition transform">
                         <span class="inline-flex h-6 w-6 items-center justify-center rounded-lg
                                    bg-slate-900 text-slate-50 text-[11px]
                                    dark:bg-slate-700 dark:text-slate-100">
@@ -371,7 +374,7 @@
                         </span>
                         <span class="text-[11px] text-slate-500 dark:text-slate-400">Bills</span>
                         <span class="font-medium text-slate-800 dark:text-slate-100">Power & TV</span>
-                    </button>
+                    </a>
                 </div>
             </div>
 

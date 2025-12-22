@@ -1,18 +1,231 @@
 {% extends "layout.html" %}
 
-{% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
-    <h2 class="text-2xl mb-4">Your Wallet</h2>
-    <p class="text-lg mb-2">Balance: ₦{{ wallet.balance }}</p>
+{% load humanize %}
 
-    <h3 class="text-xl mt-4">Transaction History</h3>
-    <ul class="mt-2">
-        {% for transaction in transactions %}
-        <li>
-            <span>{{ transaction.timestamp }} - {{ transaction.transaction_type|title }}:
-                ₦{{ transaction.amount }}</span>
-        </li>
-        {% endfor %}
-    </ul>
+{% block title %}Wallet – Nova VTU{% endblock %}
+
+{% block content %}
+<div class="pb-24 lg:pb-4">
+    <!-- Header with actions -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                Wallet Management
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight mt-1 text-slate-900 dark:text-slate-50">
+                Your Wallet
+            </h1>
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1
+                           dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                    Active
+                </span>
+                <span class="inline-flex truncate">
+                    User: {{ request.user.username }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            <!-- Fund wallet button -->
+            <a href="{% url 'fund_wallet' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500 hover:bg-brand-600
+                       text-sm font-medium text-white shadow-md shadow-brand-500/40 transition">
+                <span class="text-lg leading-none">＋</span>
+                <span>Fund Wallet</span>
+            </a>
+            <!-- Transaction History button -->
+            <a href="{% url 'transaction_history' %}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-300
+                       hover:border-slate-400 text-sm text-slate-800 bg-white
+                       dark:border-slate-700 dark:hover:border-slate-500 dark:text-slate-200 dark:bg-slate-900 transition">
+                <span>Full History</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Wallet Balance Card -->
+    <section class="mb-6">
+        <article class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800
+                   border border-slate-900 shadow-xl shadow-slate-900/60 text-white">
+            <div class="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-brand-500/25 blur-2xl"></div>
+            <div class="absolute -right-24 bottom-0 h-44 w-44 rounded-full bg-slate-700/50 blur-3xl"></div>
+
+            <div class="p-6 lg:p-8 flex flex-col gap-3 relative">
+                <div class="flex items-center justify-between">
+                    <p class="text-xs uppercase tracking-[0.18em] text-slate-300">
+                        Available Balance
+                    </p>
+                    <span class="text-[11px] px-2 py-1 rounded-full bg-slate-800/80 border border-slate-700">
+                        NGN
+                    </span>
+                </div>
+                <p class="text-5xl font-semibold tracking-tight">
+                    ₦{{ wallet.balance|floatformat:2|intcomma }}
+                </p>
+                <p class="text-xs text-slate-400">
+                    Last updated: {{ wallet.updated_at|date:"M d, Y · g:i A" }}
+                </p>
+            </div>
+        </article>
+    </section>
+
+    <!-- Recent Transactions -->
+    <section class="rounded-2xl bg-white border border-slate-200
+               shadow-sm dark:bg-slate-900/95 dark:border-slate-800 dark:shadow-lg dark:shadow-slate-950/60">
+        <div class="flex items-center justify-between px-5 pt-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    Recent Transactions
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                    Last 10 wallet activities
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4">
+            {% if recent_transactions %}
+            <!-- Desktop table view (sm and up) -->
+            <div class="hidden sm:block overflow-x-auto">
+                <table class="w-full text-xs sm:text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
+                            <th class="py-2 pr-4 text-left font-medium">Date</th>
+                            <th class="py-2 pr-4 text-left font-medium">Description</th>
+                            <th class="py-2 pr-4 text-left font-medium">Type</th>
+                            <th class="py-2 pr-4 text-right font-medium">Amount</th>
+                            <th class="py-2 text-right font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        {% for tx in recent_transactions %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/70 transition">
+                            <td class="py-3 pr-4 whitespace-nowrap text-slate-800 dark:text-slate-200">
+                                <div class="text-sm">{{ tx.timestamp|date:"M d, Y" }}</div>
+                                <div class="text-[10px] text-slate-500 dark:text-slate-500">
+                                    {{ tx.timestamp|date:"g:i A" }}</div>
+                            </td>
+                            <td class="py-3 pr-4 text-slate-700 dark:text-slate-300">
+                                <div class="max-w-[180px] truncate">{{ tx.description|default:"Transaction" }}</div>
+                            </td>
+                            <td class="py-3 pr-4 whitespace-nowrap">
+                                {% if tx.transaction_type == 'funding' %}
+                                <span class="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    deposit
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-400 font-medium">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                    purchase
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 pr-4 whitespace-nowrap text-right font-semibold">
+                                <span class="{% if tx.transaction_type == 'funding' %}text-emerald-600 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                    {% if tx.transaction_type == 'funding' %}+{% else %}-{% endif %}₦{{ tx.amount|floatformat:2|intcomma }}
+                                </span>
+                            </td>
+                            <td class="py-3 text-right whitespace-nowrap">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium
+                                            {% if tx.status == 'completed' %}
+                                                bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300
+                                            {% elif tx.status == 'pending' %}
+                                                bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300
+                                            {% else %}
+                                                bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300
+                                            {% endif %}">
+                                    {{ tx.status|title }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile card view -->
+            <div class="sm:hidden space-y-3">
+                {% for tx in recent_transactions %}
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-4">
+                    <!-- Amount and status row -->
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div>
+                            <p class="text-lg font-semibold {% if tx.transaction_type == 'funding' %}text-emerald-600 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">
+                                {% if tx.transaction_type == 'funding' %}+{% else %}-{% endif %}₦{{ tx.amount|floatformat:2|intcomma }}
+                            </p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                                {{ tx.description|default:"Transaction" }}
+                            </p>
+                        </div>
+                        <span class="inline-flex items-center rounded-full px-2 py-1 text-[10px] font-medium shrink-0
+                                    {% if tx.status == 'completed' %}
+                                        bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300
+                                    {% elif tx.status == 'pending' %}
+                                        bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300
+                                    {% else %}
+                                        bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300
+                                    {% endif %}">
+                            {{ tx.status|title }}
+                        </span>
+                    </div>
+
+                    <!-- Type and date row -->
+                    <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100 dark:border-slate-800">
+                        {% if tx.transaction_type == 'funding' %}
+                        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            deposit
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                            purchase
+                        </span>
+                        {% endif %}
+                        <span class="text-slate-500 dark:text-slate-500">
+                            {{ tx.timestamp|date:"M d, Y · g:i A" }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <!-- Empty state -->
+            <div class="py-10 flex flex-col items-center justify-center text-center">
+                <div class="h-10 w-10 rounded-2xl
+                               bg-slate-100 text-slate-700
+                               dark:bg-slate-800 dark:text-slate-100
+                               flex items-center justify-center mb-3">
+                    <span class="text-lg">📄</span>
+                </div>
+                <p class="text-sm font-medium text-slate-800 dark:text-slate-200">
+                    No transactions yet
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-500 mt-1 max-w-xs">
+                    Fund your wallet to start seeing activity here.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
 </div>
 {% endblock %}

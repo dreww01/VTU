@@ -1,33 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Purchase Confirmation - Nova VTU</title>
+    <style>
+        /* Basic Styles for Email Compatibility */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        table {
+            border-spacing: 0;
+            margin: 0 auto;
+        }
+
+        td {
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .content {
+            padding: 20px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .content h3 {
+            color: #007bff;
+            margin-top: 0;
+        }
+
+        .details {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .details li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        .details li:last-child {
+            border-bottom: none;
+        }
+
+        .cta-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .cta-button a {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
-    <h2>Dear {{ user.username }},</h2>
-    <p>Your recent purchase was successful:</p>
+    <table class="container">
+        <tr>
+            <td class="header">
+                <h2>Nova VTU Purchase Confirmation</h2>
+            </td>
+        </tr>
+        <tr>
+            <td class="content">
+                <h3>Dear {{ user.username }},</h3>
+                <p>Your recent purchase was successful! Below are your transaction details:</p>
 
-    <ul>
-        <li><strong>Reference:</strong> {{ transaction.reference }}</li>
-        <li><strong>Amount:</strong> ₦{{ transaction.amount|floatformat:2 }}</li>
-        <li><strong>Status:</strong> {{ transaction.status|title }}</li>
-        <li><strong>Transaction Type:</strong> {{ transaction.transaction_type }}</li>
-        <li><strong>Network/Service:</strong> {{ transaction.description }}</li>
+                <ul class="details">
+                    <li><strong>Reference:</strong> {{ transaction.reference }}</li>
+                    <li><strong>Amount:</strong> ₦{{ transaction.amount|floatformat:2 }}</li>
+                    <li><strong>Status:</strong> {{ transaction.status|title }}</li>
+                    <li><strong>Transaction Type:</strong> {{ transaction.transaction_type }}</li>
+                    <li><strong>Network/Service:</strong> {{ transaction.description }}</li>
 
-        {% if transaction.transaction_type == "purchase" and "electricity" in transaction.description.lower %}
-        <li><strong>Meter Number:</strong> {{ meter_number_from_desc }}</li>
-        {% if transaction.token %}
-        <li><strong>Token:</strong> {{ transaction.token }}</li>
-        {% endif %}
-        {% endif %}
-    </ul>
-
-    <p>Thank you for using Nova VTU!</p>
-    <p>If you have any issues with this transaction, please reach out to <a
-            href="mailto:support@novavtu.com">support@novavtu.com</a>.</p>
-    <p>Best regards,<br>The Nova VTU Team</p>
+                    {% if transaction.transaction_type == "purchase" and "electricity" in transaction.description.lower %}
+                    <li><strong>Meter Number:</strong> {{ meter_number }}</li>
+                    {% if transaction.token %}
+                    <li><strong>Token:</strong> {{ transaction.token }}</li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="cta-button">
+                <a href="mailto:support@novavtu.com">Contact Support</a>
+            </td>
+        </tr>
+        <tr>
+            <td class="footer">
+                <p>If you have any issues with this transaction, please reach out to us at <a
+                        href="mailto:support@novavtu.com">support@novavtu.com</a>.</p>
+                <p>Best regards,<br>The Nova VTU Team</p>
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

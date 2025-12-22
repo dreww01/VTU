@@ -1,0 +1,165 @@
+# =============================================================================
+# Nova VTU - Migration Safety Checks
+# Runs on PRs that modify migration files
+# =============================================================================
+
+name: Migration Safety
+
+on:
+  pull_request:
+    paths:
+      - "**/migrations/**"
+      - "**/models.py"
+
+env:
+  PYTHON_VERSION: "3.13"
+  POSTGRES_DB: nova_vtu_test
+  POSTGRES_USER: nova_vtu
+  POSTGRES_PASSWORD: test_password
+
+jobs:
+  migration-check:
+    name: Validate Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nova_vtu -d nova_vtu_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for comparing with base branch
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: List changed migration files
+        id: changed-migrations
+        run: |
+          echo "## Changed Migration Files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep migrations || true)
+
+          if [ -n "$CHANGED" ]; then
+            echo "Changed migrations:" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$CHANGED" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No migration files changed (only model files modified)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for missing migrations
+        env:
+          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: "False"
+        run: |
+          echo "## Missing Migrations Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if uv run python manage.py makemigrations --check --dry-run 2>&1; then
+            echo "✅ No missing migrations" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Missing migrations detected!**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`python manage.py makemigrations\` and commit the changes." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Apply migrations to fresh database
+        env:
+          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: "False"
+        run: |
+          echo "## Migration Application" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "Applying all migrations to fresh database..." >> $GITHUB_STEP_SUMMARY
+
+          if uv run python manage.py migrate 2>&1; then
+            echo "✅ All migrations applied successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Migration failed!**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Check migration reversibility
+        env:
+          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: "False"
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Migration Reversibility" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Get list of apps with migrations
+          APPS=$(uv run python manage.py showmigrations --list | grep -E '^\w' | tr -d '[]' || true)
+
+          echo "Checking if migrations can be reversed..." >> $GITHUB_STEP_SUMMARY
+
+          # Note: We don't actually reverse migrations in CI as it could cause issues
+          # This is just a placeholder for documentation
+          echo "⚠️ Manual reversibility testing recommended for data migrations" >> $GITHUB_STEP_SUMMARY
+
+      - name: Show migration plan
+        env:
+          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@localhost:5432/${{ env.POSTGRES_DB }}
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: "False"
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Current Migration Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          uv run python manage.py showmigrations >> $GITHUB_STEP_SUMMARY 2>&1
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for dangerous operations
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Dangerous Operation Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check for potentially dangerous migration operations
+          DANGEROUS_OPS=""
+
+          for file in $(find . -path "*/migrations/*.py" -newer .git/refs/remotes/origin/${{ github.base_ref }} 2>/dev/null || find . -path "*/migrations/*.py"); do
+            if grep -l "DeleteModel\|RemoveField\|AlterField.*null=False\|RunPython\|RunSQL" "$file" 2>/dev/null; then
+              DANGEROUS_OPS="$DANGEROUS_OPS\n- $file"
+            fi
+          done
+
+          if [ -n "$DANGEROUS_OPS" ]; then
+            echo "⚠️ **Potentially dangerous operations detected in:**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo -e "$DANGEROUS_OPS" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review these migrations carefully before merging." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No dangerous operations detected" >> $GITHUB_STEP_SUMMARY
+          fi

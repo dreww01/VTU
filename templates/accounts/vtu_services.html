@@ -1,0 +1,186 @@
+{% extends "layout.html" %}
+
+{% load humanize %}
+
+{% block title %}VTU Services – Nova VTU{% endblock %}
+
+{% block content %}
+<div class="pb-24 lg:pb-4">
+    <!-- Header -->
+    <header class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <a href="{% url 'dashboard' %}" class="inline-flex items-center justify-center h-8 w-8 rounded-full
+                      bg-slate-100 hover:bg-slate-200 text-slate-700
+                      dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300
+                      transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            <div>
+                <p class="text-xs uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                    VTU Services
+                </p>
+                <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                    Choose a service
+                </h1>
+            </div>
+        </div>
+
+        <!-- Wallet balance chip -->
+        <div
+            class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full
+                     border border-emerald-200 bg-emerald-50 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Wallet balance:</span>
+            <span class="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                ₦{{ wallet_balance|floatformat:2|intcomma }}
+            </span>
+        </div>
+        <!-- <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full
+                    bg-slate-100 border border-slate-200
+                    dark:bg-slate-900 dark:border-slate-700">
+            <span class="text-xs text-slate-500 dark:text-slate-400">Wallet balance:</span>
+            <span class="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                ₦{{ wallet_balance|floatformat:2|intcomma }}
+            </span>
+        </div> -->
+    </header>
+
+    <!-- Services Grid -->
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl">
+
+        <!-- Airtime Card -->
+        <a href="{% url 'buy_airtime' %}" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600
+                  border border-blue-600 shadow-xl shadow-blue-500/40 text-white
+                  hover:shadow-2xl hover:shadow-blue-500/50 hover:-translate-y-1
+                  transition-all duration-300">
+            <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+
+            <div class="relative p-6 flex flex-col gap-4">
+                <div class="flex items-start justify-between">
+                    <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm
+                                flex items-center justify-center text-2xl">
+                        📱
+                    </div>
+                    <svg class="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold mb-1">Airtime</h3>
+                    <p class="text-sm text-blue-100">
+                        Recharge airtime for MTN, Airtel, GLO, and 9mobile networks instantly.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">MTN</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">Airtel</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">GLO</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">9mobile</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Data Card -->
+        <a href="{% url 'buy_data' %}" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600
+                  border border-purple-600 shadow-xl shadow-purple-500/40 text-white
+                  hover:shadow-2xl hover:shadow-purple-500/50 hover:-translate-y-1
+                  transition-all duration-300">
+            <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+
+            <div class="relative p-6 flex flex-col gap-4">
+                <div class="flex items-start justify-between">
+                    <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm
+                                flex items-center justify-center text-2xl">
+                        📡
+                    </div>
+                    <svg class="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold mb-1">Data Bundles</h3>
+                    <p class="text-sm text-purple-100">
+                        Purchase affordable data plans for all Nigerian networks with instant activation.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">Daily plans</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">Monthly</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">Yearly</span>
+                </div>
+            </div>
+        </a>
+
+        <!-- Electricity/Bills Card -->
+        <a href="{% url 'pay_electricity' %}" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500
+                  border border-amber-600 shadow-xl shadow-amber-500/40 text-white
+                  hover:shadow-2xl hover:shadow-amber-500/50 hover:-translate-y-1
+                  transition-all duration-300 sm:col-span-2 lg:col-span-1">
+            <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
+            <div class="absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-white/5 blur-3xl"></div>
+
+            <div class="relative p-6 flex flex-col gap-4">
+                <div class="flex items-start justify-between">
+                    <div class="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm
+                                flex items-center justify-center text-2xl">
+                        💡
+                    </div>
+                    <svg class="w-5 h-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-semibold mb-1">Electricity & TV</h3>
+                    <p class="text-sm text-amber-100">
+                        Pay for prepaid electricity units and cable TV subscriptions hassle-free.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-1.5 text-xs">
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">IKEDC</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">EKEDC</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">DStv</span>
+                    <span class="px-2 py-1 rounded-full bg-white/15 backdrop-blur-sm">GOtv</span>
+                </div>
+            </div>
+        </a>
+    </section>
+
+    <!-- Quick stats / info -->
+    <section class="mt-8 max-w-5xl">
+        <div class="rounded-2xl bg-white border border-slate-200 p-6 shadow-sm
+                    dark:bg-slate-900 dark:border-slate-800">
+            <div class="flex items-start gap-4">
+                <div class="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-500/20
+                            flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                        Instant delivery guaranteed
+                    </h4>
+                    <p class="text-xs text-slate-600 dark:text-slate-400">
+                        All VTU services are processed instantly. You'll receive confirmation via email and SMS
+                        as soon as your transaction is completed. Keep your wallet funded for uninterrupted service.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
