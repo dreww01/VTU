@@ -115,7 +115,7 @@ whitenoise>=6.8.2             # Static file serving
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/nova-vtu.git
+git clone [https://github.com/dreww01/VTU](https://github.com/dreww01/VTU).git
 cd nova-vtu
 ```
 
@@ -554,6 +554,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ⭐ Star this repo if you find it helpful!
 
-[Report Bug](https://github.com/yourusername/nova-vtu/issues) • [Request Feature](https://github.com/yourusername/nova-vtu/issues)
+[Report Bug](https://github.com/dreww01/VTU/issues) • [Request Feature](https://github.com/dreww01/VTU/issues)
 
 </div>
