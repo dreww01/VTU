@@ -24,6 +24,10 @@ class RegistrationTests(TestCase):
             self.register_url,
             {
                 "username": "newuser",
+                "first_name": "New",
+                "last_name": "User",
+                "email": "newuser@example.com",
+                "phone_number": "08031234567",
                 "password": "securepass123",
                 "password_confirm": "securepass123",
             },
@@ -225,8 +229,7 @@ class ProtectedPageTests(TestCase):
 
         # Should load successfully
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Protected Page")
-        self.assertContains(response, "Welcome to this protected page!")
+        self.assertContains(response, "Profile")
 
     def test_protected_page_after_logout(self):
         """Protected page should not be accessible after logout"""

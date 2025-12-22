@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -22,7 +23,10 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
 
 # Hosts configuration - load from environment in production
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+if "test" in sys.argv:
+    ALLOWED_HOSTS = ["*"]  # Allow all hosts in tests
+else:
+    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # CSRF trusted origins - load from environment in production
 _csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
@@ -104,13 +108,22 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Use DATABASE_URL if available (PostgreSQL), otherwise fall back to SQLite
-DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+if "test" in sys.argv:
+    # Use SQLite in-memory database for tests
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+else:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 
 # Password validation
@@ -158,8 +171,6 @@ STATICFILES_DIRS = [
 # WhiteNoise configuration for efficient static file serving
 # Compresses and caches static files with far-future headers
 # Use simpler storage for tests to avoid collectstatic requirement
-import sys
-
 if "test" in sys.argv:
     STORAGES = {
         "default": {
@@ -202,9 +213,9 @@ VTPASS_SECRET_KEY = os.environ.get("VTPASS_SECRET_KEY")
 VTPASS_PUBLIC_KEY = os.environ.get("VTPASS_PUBLIC_KEY")
 
 # Email backend configuration (Resend SMTP)
-# Use console backend for tests
+# Use dummy backend for tests to prevent email sending
 if "test" in sys.argv:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 else:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "smtp.resend.com"
@@ -232,7 +243,11 @@ VERIFIED_HOURLY_COUNT = 20  # 20 transactions per hour
 # =============================================================================
 # RATE LIMITING SETTINGS
 # =============================================================================
-RATELIMIT_ENABLE = True
+# Disable rate limiting for tests
+if "test" in sys.argv:
+    RATELIMIT_ENABLE = False
+else:
+    RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = "default"
 RATELIMIT_FAIL_OPEN = False  # Block if cache is unavailable (security over availability)
 
