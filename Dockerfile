@@ -81,16 +81,24 @@ USER ${APP_USER}
 # Collect static files (requires SECRET_KEY, use dummy for build)
 RUN SECRET_KEY=build-time-secret python manage.py collectstatic --noinput
 
-# Expose port
-EXPOSE 8000
+# Expose port (Cloud Run provides PORT env variable, default to 8080)
+ENV PORT=8080
+EXPOSE 8080
 
-# Health check
+# Health check (Cloud Run handles this, but useful for local testing)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
+    CMD curl -f http://localhost:${PORT}/health/ || exit 1
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "2", \
-     "--worker-class", "gthread", "--worker-tmp-dir", "/dev/shm", \
-     "--access-logfile", "-", "--error-logfile", "-", \
-     "--capture-output", "--enable-stdio-inheritance", \
-     "config.wsgi:application"]
+# Run gunicorn with Cloud Run compatibility
+# Use shell form to allow $PORT variable expansion
+CMD exec gunicorn config.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 2 \
+    --threads 4 \
+    --worker-class gthread \
+    --worker-tmp-dir /dev/shm \
+    --log-file - \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info \
+    --timeout 120

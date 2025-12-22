@@ -1,7 +1,7 @@
 [project]
 name = "vtu"
 version = "0.1.0"
-description = "Add your description here"
+description = "Nova VTU - Virtual Top-Up Platform for Nigeria"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -15,4 +15,8 @@ dependencies = [
     "psycopg[binary]>=3.3.2",
     "python-dotenv>=1.2.1",
     "whitenoise>=6.8.2",
+    # Production dependencies
+    "gunicorn>=23.0.0",
+    "google-cloud-storage>=2.18.2",
+    "django-storages[google]>=1.14.4",
 ]

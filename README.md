@@ -438,15 +438,36 @@ Custom exceptions for better error tracking:
 
 ### Deployment Options
 
-#### 1. **Railway / Render**
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
+#### 1. **Google Cloud Platform (Recommended)**
+Complete guides available in [.claude/deployment/](.claude/deployment/):
+- **[Quick Start](.claude/deployment/quick-start.md)** - Deploy in 30 minutes with step-by-step commands
+- **[Full Guide](.claude/deployment/gcp-deployment.md)** - Comprehensive GCP deployment documentation
+- **[Local Testing](.claude/deployment/local-testing.md)** - Test Docker setup before deployment
 
-#### 2. **Docker**
+**Tech Stack:** Cloud Run + Cloud SQL (PostgreSQL) + Cloud Storage
+
+**Cost:** ~$15-30/month for low-medium traffic
+
+**Quick Deploy:**
 ```bash
-docker-compose up -d
+# See .claude/deployment/quick-start.md for full commands
+gcloud builds submit --tag gcr.io/PROJECT_ID/nova-vtu
+gcloud run deploy nova-vtu --image gcr.io/PROJECT_ID/nova-vtu
 ```
 
-#### 3. **Traditional VPS**
+#### 2. **Docker / Docker Compose**
+```bash
+# Local testing
+docker-compose up -d
+
+# Production
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+#### 3. **Railway / Render**
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
+
+#### 4. **Traditional VPS**
 - Use Gunicorn/uWSGI
 - Nginx reverse proxy
 - Systemd service
