@@ -27,3 +27,6 @@ media/
 # Static files collected by Django
 staticfiles/
 static_root/
+
+PRE_DEPLOYMENT_CHECKLIST.md
+test_webhook.py
