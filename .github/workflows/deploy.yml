@@ -49,15 +49,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug secrets
-        run: |
-          echo "WIF Provider length: ${#WIF}"
-          echo "WIF Provider starts with: ${WIF:0:20}..."
-          echo "SA Email: $SA_EMAIL"
-        env:
-          WIF: ${{ secrets.GCP_WIF_PROVIDER }}
-          SA_EMAIL: ${{ secrets.GCP_SA_EMAIL }}
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
@@ -88,13 +79,14 @@ jobs:
             --max-instances 10 \
             --port 8080 \
             --set-env-vars "DEBUG=False" \
-            --set-secrets "SECRET_KEY=django-secret-key:latest" \
-            --set-secrets "DATABASE_URL=database-url:latest" \
-            --set-secrets "PAYSTACK_SECRET_KEY=paystack-secret-key:latest" \
-            --set-secrets "PAYSTACK_PUBLIC_KEY=paystack-public-key:latest" \
-            --set-secrets "VTPASS_API_KEY=vtpass-api-key:latest" \
-            --set-secrets "VTPASS_SECRET_KEY=vtpass-secret-key:latest" \
-            --set-secrets "RESEND_API_KEY=resend-api-key:latest"
+            --set-secrets "SECRET_KEY=SECRET_KEY:latest" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest" \
+            --set-secrets "PAYSTACK_SECRET_KEY=PAYSTACK_SECRET_KEY:latest" \
+            --set-secrets "PAYSTACK_PUBLIC_KEY=PAYSTACK_PUBLIC_KEY:latest" \
+            --set-secrets "VTPASS_API_KEY=VTPASS_API_KEY:latest" \
+            --set-secrets "VTPASS_SECRET_KEY=VTPASS_SECRET_KEY:latest" \
+            --set-secrets "VTPASS_BASE_URL=VTPASS_BASE_URL:latest" \
+            --set-secrets "RESEND_API_KEY=RESEND_API_KEY:latest"
 
       - name: Show deployment URL
         run: |
