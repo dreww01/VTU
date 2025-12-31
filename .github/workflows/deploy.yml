@@ -49,6 +49,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug secrets
+        run: |
+          echo "WIF Provider length: ${#WIF}"
+          echo "WIF Provider starts with: ${WIF:0:20}..."
+          echo "SA Email: $SA_EMAIL"
+        env:
+          WIF: ${{ secrets.GCP_WIF_PROVIDER }}
+          SA_EMAIL: ${{ secrets.GCP_SA_EMAIL }}
+
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
