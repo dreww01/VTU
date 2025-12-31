@@ -78,15 +78,9 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --port 8080 \
+            --clear-secrets \
             --set-env-vars "DEBUG=False" \
-            --set-secrets "SECRET_KEY=SECRET_KEY:latest" \
-            --set-secrets "DATABASE_URL=DATABASE_URL:latest" \
-            --set-secrets "PAYSTACK_SECRET_KEY=PAYSTACK_SECRET_KEY:latest" \
-            --set-secrets "PAYSTACK_PUBLIC_KEY=PAYSTACK_PUBLIC_KEY:latest" \
-            --set-secrets "VTPASS_API_KEY=VTPASS_API_KEY:latest" \
-            --set-secrets "VTPASS_SECRET_KEY=VTPASS_SECRET_KEY:latest" \
-            --set-secrets "VTPASS_BASE_URL=VTPASS_BASE_URL:latest" \
-            --set-secrets "RESEND_API_KEY=RESEND_API_KEY:latest"
+            --set-secrets "SECRET_KEY=SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PAYSTACK_SECRET_KEY=PAYSTACK_SECRET_KEY:latest,PAYSTACK_PUBLIC_KEY=PAYSTACK_PUBLIC_KEY:latest,VTPASS_API_KEY=VTPASS_API_KEY:latest,VTPASS_SECRET_KEY=VTPASS_SECRET_KEY:latest,VTPASS_BASE_URL=VTPASS_BASE_URL:latest,RESEND_API_KEY=RESEND_API_KEY:latest"
 
       - name: Show deployment URL
         run: |
