@@ -78,9 +78,8 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --port 8080 \
-            --clear-secrets \
             --set-env-vars "DEBUG=False" \
-            --set-secrets "SECRET_KEY=SECRET_KEY:latest,DATABASE_URL=DATABASE_URL:latest,PAYSTACK_SECRET_KEY=PAYSTACK_SECRET_KEY:latest,PAYSTACK_PUBLIC_KEY=PAYSTACK_PUBLIC_KEY:latest,VTPASS_API_KEY=VTPASS_API_KEY:latest,VTPASS_SECRET_KEY=VTPASS_SECRET_KEY:latest,VTPASS_BASE_URL=VTPASS_BASE_URL:latest,RESEND_API_KEY=RESEND_API_KEY:latest"
+            --set-secrets "SECRET_KEY=django-secret-key:latest,DATABASE_URL=database-url:latest,PAYSTACK_SECRET_KEY=paystack-secret-key:latest,PAYSTACK_PUBLIC_KEY=paystack-public-key:latest,VTPASS_API_KEY=vtpass-api-key:latest,VTPASS_SECRET_KEY=vtpass-secret-key:latest,RESEND_API_KEY=resend-api-key:latest"
 
       - name: Show deployment URL
         run: |
