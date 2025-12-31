@@ -223,10 +223,11 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
-# media
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-MEDIA_URL = "/media/"
+# Media files (avatars, uploads)
+# MEDIA_URL is set conditionally in the STORAGES section above when GS_BUCKET_NAME is configured
+# Only set local defaults if not already configured for GCS
+if "GS_BUCKET_NAME" not in os.environ or not os.environ.get("GS_BUCKET_NAME"):
+    MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
