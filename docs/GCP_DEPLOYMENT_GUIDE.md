@@ -158,7 +158,42 @@ for secret in django-secret-key database-url paystack-secret-key paystack-public
 done
 ```
 
-### Step 6: Deploy Manually (First Time / Testing)
+### Step 6: Setup Google Cloud Storage (for Media/Avatars)
+
+Media files (user avatars, uploads) need persistent storage. Cloud Run filesystem is ephemeral.
+
+```bash
+# Create a bucket (name must be globally unique)
+BUCKET_NAME="nova-vtu-media-prod"
+gcloud storage buckets create gs://$BUCKET_NAME \
+  --location=us-central1 \
+  --uniform-bucket-level-access
+
+# Make bucket publicly readable (for serving avatars)
+gcloud storage buckets add-iam-policy-binding gs://$BUCKET_NAME \
+  --member="allUsers" \
+  --role="roles/storage.objectViewer"
+
+# Grant Cloud Run service account write access
+# First, get the Cloud Run service account (compute engine default)
+PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get-value project) --format="value(projectNumber)")
+CLOUD_RUN_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
+gcloud storage buckets add-iam-policy-binding gs://$BUCKET_NAME \
+  --member="serviceAccount:$CLOUD_RUN_SA" \
+  --role="roles/storage.objectAdmin"
+
+# Create secret for bucket name
+echo -n "$BUCKET_NAME" | \
+  gcloud secrets create gs-bucket-name --data-file=-
+
+# Grant access to the secret
+gcloud secrets add-iam-policy-binding gs-bucket-name \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+### Step 7: Deploy Manually (First Time / Testing)
 
 ```bash
 # Build and deploy from local
@@ -167,11 +202,11 @@ gcloud run deploy nova-vtu \
   --region us-central1 \
   --platform managed \
   --allow-unauthenticated \
-  --set-secrets "SECRET_KEY=django-secret-key:latest,DATABASE_URL=database-url:latest,PAYSTACK_SECRET_KEY=paystack-secret-key:latest,PAYSTACK_PUBLIC_KEY=paystack-public-key:latest,VTPASS_API_KEY=vtpass-api-key:latest,VTPASS_SECRET_KEY=vtpass-secret-key:latest,RESEND_API_KEY=resend-api-key:latest" \
+  --set-secrets "SECRET_KEY=django-secret-key:latest,DATABASE_URL=database-url:latest,PAYSTACK_SECRET_KEY=paystack-secret-key:latest,PAYSTACK_PUBLIC_KEY=paystack-public-key:latest,VTPASS_API_KEY=vtpass-api-key:latest,VTPASS_SECRET_KEY=vtpass-secret-key:latest,RESEND_API_KEY=resend-api-key:latest,GS_BUCKET_NAME=gs-bucket-name:latest" \
   --set-env-vars "DEBUG=False,ALLOWED_HOSTS=.run.app"
 ```
 
-### Step 7: Make Service Public
+### Step 8: Make Service Public
 
 ```bash
 gcloud run services add-iam-policy-binding nova-vtu \
@@ -518,3 +553,4 @@ gcloud run services update nova-vtu --region=us-central1
 | `vtpass-api-key` | `VTPASS_API_KEY` |
 | `vtpass-secret-key` | `VTPASS_SECRET_KEY` |
 | `resend-api-key` | `RESEND_API_KEY` |
+| `gs-bucket-name` | `GS_BUCKET_NAME` |

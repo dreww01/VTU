@@ -183,15 +183,26 @@ if "test" in sys.argv:
 else:
     # Use GCS for media files in production if bucket name is provided
     GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
-    if GS_BUCKET_NAME and not DEBUG:
+    if GS_BUCKET_NAME:
+        # GCS Configuration
+        GS_DEFAULT_ACL = "publicRead"  # Make uploaded files publicly readable
+        GS_QUERYSTRING_AUTH = False  # Don't use signed URLs for public files
+        GS_FILE_OVERWRITE = False  # Don't overwrite files with same name
+
         STORAGES = {
             "default": {
                 "BACKEND": "storages.backends.gcloud.GoogleCloudStorage",
+                "OPTIONS": {
+                    "bucket_name": GS_BUCKET_NAME,
+                    "location": "media",  # Store in media/ folder within bucket
+                },
             },
             "staticfiles": {
                 "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
             },
         }
+        # Update MEDIA_URL to point to GCS
+        MEDIA_URL = f"https://storage.googleapis.com/{GS_BUCKET_NAME}/media/"
     else:
         STORAGES = {
             "default": {
