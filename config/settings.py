@@ -20,16 +20,16 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 # Hosts configuration - load from environment in production
 if "test" in sys.argv:
     ALLOWED_HOSTS = ["*"]  # Allow all hosts in tests
 else:
-    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost,.run.app").split(",")
 
 # CSRF trusted origins - load from environment in production
-_csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "")
+_csrf_origins = os.environ.get("CSRF_TRUSTED_ORIGINS", "https://*.run.app")
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_origins.split(",") if origin.strip()]
 
 
