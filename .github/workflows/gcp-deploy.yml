@@ -7,6 +7,11 @@ on:
       - main
   workflow_dispatch:
 
+# Prevent multiple deployments from running at the same time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
@@ -57,7 +62,6 @@ jobs:
           region: ${{ env.REGION }}
           image: ${{ env.IMAGE_NAME }}
           flags: '--allow-unauthenticated'
-          # NOTE: Consider moving these to Secret Manager later
           env_vars: |-
             DEBUG=False
             DJANGO_SETTINGS_MODULE=config.settings
