@@ -30,3 +30,6 @@ static_root/
 
 PRE_DEPLOYMENT_CHECKLIST.md
 test_webhook.py
+
+GCP_HOSTING_GUIDE.md
+PRE_DEPLOYMENT_CHECKLIST.md

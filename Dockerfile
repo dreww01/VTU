@@ -24,17 +24,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python dependencies
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 
 # Install uv for faster dependency installation
 RUN pip install uv
 
-# Export dependencies to requirements.txt and install
-RUN uv pip compile pyproject.toml -o requirements.txt && \
-    uv pip install --system -r requirements.txt
-
-# Install gunicorn for production
-RUN pip install gunicorn
+# Install dependencies using uv.lock for deterministic builds
+RUN uv pip install --system --no-cache -r pyproject.toml
 
 # -----------------------------------------------------------------------------
 # Stage 2: Production - Minimal runtime image

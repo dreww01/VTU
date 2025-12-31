@@ -1,0 +1,32 @@
+# .gcloudignore
+# This file specifies files that should be ignored by gcloud when building
+# or deploying your application to Google Cloud.
+
+.gcloudignore
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.env
+.python-version
+.ruff_cache/
+
+# Local database
+db.sqlite3
+
+# Logs
+*.log
+
+# Media/Static (should be handled by GCS/Whitenoise)
+media/
+staticfiles/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+nginx/
