@@ -15,6 +15,8 @@ class RegistrationTests(TestCase):
     def test_register_page_loads(self):
         """Registration page should load successfully"""
         response = self.client.get(self.register_url)
+        if response.status_code == 301:
+            print(f"DEBUG: 301 Redirect to: {response.url}")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Register")
 

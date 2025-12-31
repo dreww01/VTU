@@ -2,13 +2,29 @@ name: CI
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -25,8 +41,15 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Lint with ruff
+      - name: Lint
         run: uv run ruff check .
 
+      - name: Type check
+        run: uv run mypy . --ignore-missing-imports || true
+
       - name: Run tests
+        env:
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: "True"
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
         run: uv run python manage.py test

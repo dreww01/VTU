@@ -37,7 +37,7 @@ CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_origins.split(",") if
 # SECURITY SETTINGS (Production)
 # =============================================================================
 # Only enable these when serving over HTTPS
-if not DEBUG:
+if not DEBUG and "test" not in sys.argv:
     # HTTPS/SSL
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

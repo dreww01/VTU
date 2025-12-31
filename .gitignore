@@ -1,35 +1,94 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 wheels/
-*.egg-info
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
-.venv
+.venv/
+venv/
+ENV/
+env/
 
-# sqlite 
+# Django
+*.log
+local_settings.py
 *.sqlite3
+*.pot
+*.pyc
 
-# .env secret files
-.env
-
-vtp_pending_recheck.log
-
-.claude
-claude
-nul
-
-# User-uploaded media files
-media/
-
-# Static files collected by Django
+# Static and media
 staticfiles/
 static_root/
+media/
 
-PRE_DEPLOYMENT_CHECKLIST.md
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+.pytest_cache/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Linting
+.ruff_cache/
+.mypy_cache/
+
+# Documentation
+docs/_build/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Claude AI context (keep local only)
+.claude/
+
+# Project-specific
+vtp_pending_recheck.log
 test_webhook.py
-
-GCP_HOSTING_GUIDE.md
 PRE_DEPLOYMENT_CHECKLIST.md
+GCP_HOSTING_GUIDE.md
+deployment/
+nul
+
+# Secrets and certificates
+*.pem
+*.key
+secrets/
