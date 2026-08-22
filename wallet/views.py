@@ -244,7 +244,7 @@ def paystack_webhook(request):
 
         User = get_user_model()
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             logger.warning("Customer not found for email: %s", email)
             return HttpResponse("Customer not found", status=404)
