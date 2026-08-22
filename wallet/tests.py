@@ -9,7 +9,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from transactions.models import Transaction
-from wallet.models import MAX_BALANCE, Wallet
+from wallet.models import Wallet
 from wallet.views import get_paystack_secret_key
 
 User = get_user_model()
