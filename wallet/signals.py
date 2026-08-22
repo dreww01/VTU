@@ -2,17 +2,16 @@
 import logging
 from decimal import Decimal
 
-from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .models import Wallet
 
 logger = logging.getLogger(__name__)
-User = get_user_model()
 
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_wallet(sender, instance, created, **kwargs):
     """
     Automatically create a wallet when a new user is created.
