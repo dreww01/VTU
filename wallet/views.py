@@ -190,7 +190,7 @@ def paystack_webhook(request):
     secret_key = get_paystack_secret_key()
     if not secret_key:
         logger.error("PAYSTACK_SECRET_KEY is not configured")
-        return HttpResponse(status=400)
+        return HttpResponse("Webhook secret key unconfigured", status=500)
 
     signature = request.headers.get("x-paystack-signature")
     if not signature:
