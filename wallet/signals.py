@@ -18,4 +18,4 @@ def create_user_wallet(sender, instance, created, **kwargs):
     """
     if created:
         Wallet.objects.get_or_create(user=instance, defaults={"balance": Decimal("0.00")})
-        logger.info(f"Wallet automatically created for user: {instance.username}")
+        logger.info(f"Wallet automatically created for user: {instance.get_username()}")
