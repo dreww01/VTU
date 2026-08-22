@@ -249,8 +249,8 @@ def paystack_webhook(request):
             logger.warning("Customer not found for email: %s", email)
             return HttpResponse("Customer not found", status=404)
         except User.MultipleObjectsReturned:
-            logger.warning("Multiple users found for email: %s", email)
-            user = User.objects.filter(email=email).order_by("id").first()
+            logger.error("Multiple user accounts found for email %s; cannot determine recipient wallet for ref %s", email, reference)
+            return HttpResponse("Multiple accounts associated with email", status=400)
 
         try:
             with transaction.atomic():
