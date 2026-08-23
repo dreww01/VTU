@@ -3,12 +3,12 @@ import hashlib
 import hmac
 import json
 import logging
-import os
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import httpx
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -22,11 +22,10 @@ from django_ratelimit.decorators import ratelimit
 from transactions.models import Transaction
 from wallet.models import Wallet
 
+User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Paystack Configuration
-PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
-PAYSTACK_PUBLIC_KEY = os.environ.get("PAYSTACK_PUBLIC_KEY")
 MAX_FUND_LIMIT = Decimal("100000.00")  # ₦100,000 max per deposit
 
 # Shared httpx client for Paystack API calls (connection pooling)
@@ -36,11 +35,12 @@ _paystack_client: httpx.Client | None = None
 def get_paystack_client() -> httpx.Client:
     """Get or create a shared httpx client for Paystack API calls."""
     global _paystack_client
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", "")
     if _paystack_client is None or _paystack_client.is_closed:
         _paystack_client = httpx.Client(
             base_url="https://api.paystack.co",
             headers={
-                "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+                "Authorization": f"Bearer {secret_key}",
                 "Content-Type": "application/json",
             },
             timeout=httpx.Timeout(connect=5.0, read=15.0, write=5.0, pool=5.0),
@@ -65,7 +65,7 @@ def fund_wallet(request):
         return HttpResponseBadRequest("Use JavaScript to initialize payment")
 
     context = {
-        "paystack_public_key": PAYSTACK_PUBLIC_KEY,
+        "paystack_public_key": getattr(settings, "PAYSTACK_PUBLIC_KEY", ""),
         "email": request.user.email,
     }
     return render(request, "wallet/fund_wallet.html", context)
@@ -176,24 +176,94 @@ def paystack_webhook(request):
     Handle Paystack webhook notifications.
     Rate limited to prevent DDoS attacks.
     """
-    secret = PAYSTACK_SECRET_KEY.encode()
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", None)
+    if not secret_key:
+        logger.error("PAYSTACK_SECRET_KEY is not configured")
+        return HttpResponse(status=500)
+
     signature = request.headers.get("x-paystack-signature")
+    if not signature:
+        logger.warning(
+            f"Missing or empty Paystack webhook signature from IP: {request.META.get('REMOTE_ADDR')}"
+        )
+        return HttpResponse(status=400)
+
+    secret = secret_key.encode("utf-8")
     payload = request.body
 
-    # Verify webhook signature
+    # Verify webhook signature using constant-time comparison
     computed_sig = hmac.new(secret, payload, hashlib.sha512).hexdigest()
-    if signature != computed_sig:
+    if not hmac.compare_digest(signature, computed_sig):
         logger.warning(
             f"Invalid Paystack webhook signature from IP: {request.META.get('REMOTE_ADDR')}"
         )
         return HttpResponse(status=400)
 
     # Process event
-    event = json.loads(payload)
-    if event["event"] == "charge.success":
-        reference = event["data"]["reference"]
-        logger.info(f"Paystack webhook received: charge.success for ref={reference}")
-        # TODO: Process payment asynchronously with Celery/RQ for production
+    try:
+        event = json.loads(payload.decode("utf-8") if isinstance(payload, bytes) else payload)
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        logger.error(f"Invalid JSON payload in Paystack webhook: {e}")
+        return HttpResponseBadRequest("Invalid JSON payload")
+
+    if not isinstance(event, dict):
+        logger.error(f"Paystack webhook payload root is not a dictionary: {type(event).__name__}")
+        return HttpResponseBadRequest("Invalid payload format")
+
+    if event.get("event") == "charge.success":
+        data = event.get("data")
+        if not isinstance(data, dict):
+            logger.error("Paystack webhook 'data' field is not a dictionary")
+            return HttpResponseBadRequest("Invalid webhook data")
+
+        reference = data.get("reference")
+        customer = data.get("customer") or {}
+        email = customer.get("email") if isinstance(customer, dict) else None
+        amount_in_kobo = data.get("amount")
+
+        if not email or not reference or amount_in_kobo is None:
+            logger.error(
+                f"Missing required fields in charge.success webhook: email={email}, ref={reference}, amount={amount_in_kobo}"
+            )
+            return HttpResponseBadRequest("Missing required webhook data")
+
+        logger.info(f"Paystack webhook received: charge.success for ref={reference}, email={email}")
+
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            logger.warning(f"Paystack webhook: User with email '{email}' not found.")
+            return HttpResponse("Customer not found", status=404)
+
+        try:
+            naira_amount = Decimal(str(amount_in_kobo)) / Decimal(100)
+        except (InvalidOperation, ValueError, TypeError) as e:
+            logger.error(f"Paystack webhook: Invalid amount '{amount_in_kobo}': {e}")
+            return HttpResponseBadRequest("Invalid amount")
+
+        try:
+            with transaction.atomic():
+                wallet = Wallet.objects.select_for_update().get(user=user)
+
+                if Transaction.objects.filter(reference=reference).exists():
+                    logger.info(
+                        f"Duplicate webhook payment attempt (idempotent skip): ref={reference}, user={user.username}"
+                    )
+                    return HttpResponse(status=200)
+
+                wallet.deposit(
+                    amount=naira_amount,
+                    description="Paystack Webhook Deposit",
+                    reference=reference,
+                )
+                logger.info(
+                    f"Paystack webhook processed: Credited ₦{naira_amount} to {user.username} (ref: {reference})"
+                )
+        except Wallet.DoesNotExist:
+            logger.error(f"Paystack webhook: Wallet not found for user '{user.username}'.")
+            return HttpResponse("Wallet not found", status=404)
+        except ValueError as e:
+            logger.error(f"Paystack webhook: Deposit failed for {user.username}: {e}")
+            return HttpResponseBadRequest(str(e))
 
     return HttpResponse(status=200)
 
