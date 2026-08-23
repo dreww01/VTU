@@ -257,7 +257,7 @@ def paystack_webhook(request):
                 try:
                     wallet = Wallet.objects.select_for_update().get(user=user)
                 except Wallet.DoesNotExist:
-                    logger.error("Wallet not found for user: %s", user.username)
+                    logger.error("Wallet not found for user: %s", user.get_username())
                     return HttpResponse("Wallet not found", status=404)
 
                 # Check if transaction already processed (idempotency)
@@ -265,7 +265,7 @@ def paystack_webhook(request):
                     logger.info(
                         "Duplicate payment attempt (idempotency notice): ref=%s, user=%s",
                         reference,
-                        user.username,
+                        user.get_username(),
                     )
                     return HttpResponse(status=200)
 
@@ -281,7 +281,7 @@ def paystack_webhook(request):
 
                 logger.info(
                     "Wallet credited via webhook: user=%s, amount=N%s, new_balance=N%s, ref=%s",
-                    user.username,
+                    user.get_username(),
                     naira_amount,
                     wallet.balance,
                     reference,
@@ -290,7 +290,7 @@ def paystack_webhook(request):
             logger.error(
                 "Invalid amount or deposit error: ref=%s, user=%s, error=%s",
                 reference,
-                user.username,
+                user.get_username(),
                 str(e),
             )
             return HttpResponse(status=400)
@@ -298,7 +298,7 @@ def paystack_webhook(request):
             logger.exception(
                 "Unexpected error during webhook wallet credit: ref=%s, user=%s",
                 reference,
-                user.username,
+                user.get_username(),
             )
             return HttpResponse(status=500)
 
