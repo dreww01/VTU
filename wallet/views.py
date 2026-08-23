@@ -4,11 +4,12 @@ import hmac
 import json
 import logging
 import os
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import httpx
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseBadRequest
@@ -22,6 +23,7 @@ from django_ratelimit.decorators import ratelimit
 from transactions.models import Transaction
 from wallet.models import Wallet
 
+User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Paystack Configuration
@@ -176,24 +178,93 @@ def paystack_webhook(request):
     Handle Paystack webhook notifications.
     Rate limited to prevent DDoS attacks.
     """
-    secret = PAYSTACK_SECRET_KEY.encode()
     signature = request.headers.get("x-paystack-signature")
-    payload = request.body
+    if not signature:
+        logger.warning(
+            f"Missing Paystack webhook signature from IP: {request.META.get('REMOTE_ADDR')}"
+        )
+        return HttpResponse(status=400)
 
-    # Verify webhook signature
-    computed_sig = hmac.new(secret, payload, hashlib.sha512).hexdigest()
-    if signature != computed_sig:
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", None) or os.environ.get("PAYSTACK_SECRET_KEY") or ""
+    if not secret_key:
+        logger.error("PAYSTACK_SECRET_KEY is not configured")
+        return HttpResponse(status=400)
+
+    payload = request.body
+    computed_sig = hmac.new(secret_key.encode("utf-8"), payload, hashlib.sha512).hexdigest()
+
+    # Timing-safe comparison to prevent timing attacks
+    if not hmac.compare_digest(signature, computed_sig):
         logger.warning(
             f"Invalid Paystack webhook signature from IP: {request.META.get('REMOTE_ADDR')}"
         )
         return HttpResponse(status=400)
 
     # Process event
-    event = json.loads(payload)
-    if event["event"] == "charge.success":
-        reference = event["data"]["reference"]
-        logger.info(f"Paystack webhook received: charge.success for ref={reference}")
-        # TODO: Process payment asynchronously with Celery/RQ for production
+    try:
+        event = json.loads(payload)
+    except (json.JSONDecodeError, ValueError):
+        logger.warning("Invalid JSON payload received in Paystack webhook")
+        return HttpResponse(status=400)
+
+    if event.get("event") == "charge.success":
+        event_data = event.get("data", {})
+        customer = event_data.get("customer", {}) if isinstance(event_data, dict) else {}
+        customer_email = customer.get("email") if isinstance(customer, dict) else None
+        reference = event_data.get("reference") if isinstance(event_data, dict) else None
+        amount_in_kobo = event_data.get("amount") if isinstance(event_data, dict) else None
+
+        if not reference or not customer_email or amount_in_kobo is None:
+            logger.warning(
+                "Missing required fields in charge.success webhook payload: ref=%s, email=%s, amount=%s",
+                reference,
+                customer_email,
+                amount_in_kobo,
+            )
+            return HttpResponse(status=400)
+
+        logger.info("Paystack webhook received: charge.success for ref=%s, email=%s", reference, customer_email)
+
+        user = User.objects.filter(email=customer_email).first()
+        if not user:
+            logger.error("User with email %s not found for Paystack webhook ref=%s", customer_email, reference)
+            return HttpResponse("User not found", status=404)
+
+        try:
+            with transaction.atomic():
+                wallet = Wallet.objects.select_for_update().get(user=user)
+
+                # Check if transaction already processed (idempotency)
+                if Transaction.objects.filter(reference=reference).exists():
+                    logger.info("Idempotency notice: Transaction with reference %s already processed", reference)
+                    return HttpResponse(status=200)
+
+                # Convert Paystack amount from kobo to naira
+                naira_amount = Decimal(str(amount_in_kobo)) / Decimal("100")
+
+                wallet.deposit(
+                    amount=naira_amount,
+                    description="Paystack Webhook Deposit",
+                    reference=reference,
+                )
+                logger.info(
+                    "Wallet credited via webhook: user=%s, amount=N%s, new_balance=N%s, ref=%s",
+                    user.username,
+                    naira_amount,
+                    wallet.balance,
+                    reference,
+                )
+        except Wallet.DoesNotExist:
+            logger.error("Wallet not found for user %s during Paystack webhook ref=%s", user.username, reference)
+            return HttpResponse("Wallet not found", status=404)
+        except (ValueError, InvalidOperation) as e:
+            logger.error(
+                "Error processing deposit for user %s, ref=%s: %s",
+                user.username,
+                reference,
+                e,
+            )
+            return HttpResponse(status=400)
 
     return HttpResponse(status=200)
 
