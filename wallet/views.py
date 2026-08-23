@@ -227,7 +227,7 @@ def paystack_webhook(request):
 
         logger.info(f"Paystack webhook received: charge.success for ref={reference}, email={email}")
 
-        user = User.objects.filter(email=email).first()
+        user = User.objects.filter(email__iexact=email).first()
         if not user:
             logger.warning(f"Paystack webhook: User with email '{email}' not found.")
             return HttpResponse("Customer not found", status=404)

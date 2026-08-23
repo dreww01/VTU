@@ -92,6 +92,35 @@ class PaystackWebhookTests(TestCase):
         self.assertEqual(tx.description, "Paystack Webhook Deposit")
         self.assertEqual(tx.status, "completed")
 
+    def test_charge_success_case_insensitive_email_credits_wallet(self):
+        """Case-insensitive email match in webhook payload credits the user's wallet."""
+        # Payload has mixed-case email while user.email is lowercase
+        payload_dict = self._make_charge_success_payload(
+            reference="CASE_TEST_REF_001",
+            amount_kobo=300000,
+            email="WebHookUser@EXAMPLE.Com",
+        )
+        payload_bytes = json.dumps(payload_dict).encode("utf-8")
+        signature = self._generate_signature(payload_bytes)
+
+        response = self.client.post(
+            self.webhook_url,
+            data=payload_bytes,
+            content_type="application/json",
+            headers={"x-paystack-signature": signature},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        # Verify wallet balance: 300,000 kobo = 3,000.00 NGN
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal("3000.00"))
+
+        # Verify transaction record
+        tx = Transaction.objects.get(reference="CASE_TEST_REF_001")
+        self.assertEqual(tx.wallet, self.wallet)
+        self.assertEqual(tx.amount, Decimal("3000.00"))
+
     def test_replay_webhook_idempotency(self):
         """2. Replaying the exact same webhook payload/reference returns HTTP 200 without double-crediting."""
         payload_dict = self._make_charge_success_payload(
