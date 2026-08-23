@@ -327,6 +327,19 @@ class PaystackWebhookTests(TestCase):
         response = self.client.get(self.webhook_url)
         self.assertEqual(response.status_code, 405)
 
+    @override_settings(PAYSTACK_SECRET_KEY="")
+    def test_unconfigured_secret_key_returns_500(self):
+        """Webhook returns 500 when PAYSTACK_SECRET_KEY is empty/not configured."""
+        payload_dict = self._make_charge_success_payload(reference="NO_KEY_REF")
+        payload_bytes = json.dumps(payload_dict).encode("utf-8")
+        response = self.client.post(
+            self.webhook_url,
+            data=payload_bytes,
+            content_type="application/json",
+            headers={"x-paystack-signature": "some_sig"},
+        )
+        self.assertEqual(response.status_code, 500)
+
 
 class WalletModelTests(TestCase):
     """Test suite for Wallet model operations."""
@@ -405,6 +418,14 @@ class WalletViewsTests(TestCase):
         self.client.login(username="viewuser", password="testpassword123")
         response = self.client.get(reverse("fund_wallet"))
         self.assertEqual(response.status_code, 200)
+
+    @override_settings(PAYSTACK_PUBLIC_KEY="pk_test_custom_key_123")
+    def test_fund_wallet_uses_settings_public_key(self):
+        """fund_wallet view passes PAYSTACK_PUBLIC_KEY from settings to context."""
+        self.client.login(username="viewuser", password="testpassword123")
+        response = self.client.get(reverse("fund_wallet"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["paystack_public_key"], "pk_test_custom_key_123")
 
     def test_fund_wallet_post_rejected(self):
         """POST to fund_wallet returns 400."""

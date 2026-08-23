@@ -3,7 +3,6 @@ import hashlib
 import hmac
 import json
 import logging
-import os
 from decimal import Decimal, InvalidOperation
 
 import httpx
@@ -27,8 +26,6 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 # Paystack Configuration
-PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
-PAYSTACK_PUBLIC_KEY = os.environ.get("PAYSTACK_PUBLIC_KEY")
 MAX_FUND_LIMIT = Decimal("100000.00")  # ₦100,000 max per deposit
 
 # Shared httpx client for Paystack API calls (connection pooling)
@@ -38,11 +35,12 @@ _paystack_client: httpx.Client | None = None
 def get_paystack_client() -> httpx.Client:
     """Get or create a shared httpx client for Paystack API calls."""
     global _paystack_client
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", "")
     if _paystack_client is None or _paystack_client.is_closed:
         _paystack_client = httpx.Client(
             base_url="https://api.paystack.co",
             headers={
-                "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+                "Authorization": f"Bearer {secret_key}",
                 "Content-Type": "application/json",
             },
             timeout=httpx.Timeout(connect=5.0, read=15.0, write=5.0, pool=5.0),
@@ -67,7 +65,7 @@ def fund_wallet(request):
         return HttpResponseBadRequest("Use JavaScript to initialize payment")
 
     context = {
-        "paystack_public_key": PAYSTACK_PUBLIC_KEY,
+        "paystack_public_key": getattr(settings, "PAYSTACK_PUBLIC_KEY", ""),
         "email": request.user.email,
     }
     return render(request, "wallet/fund_wallet.html", context)
@@ -178,11 +176,7 @@ def paystack_webhook(request):
     Handle Paystack webhook notifications.
     Rate limited to prevent DDoS attacks.
     """
-    secret_key = (
-        getattr(settings, "PAYSTACK_SECRET_KEY", None)
-        or os.environ.get("PAYSTACK_SECRET_KEY")
-        or PAYSTACK_SECRET_KEY
-    )
+    secret_key = getattr(settings, "PAYSTACK_SECRET_KEY", None)
     if not secret_key:
         logger.error("PAYSTACK_SECRET_KEY is not configured")
         return HttpResponse(status=500)
