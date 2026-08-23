@@ -7,11 +7,15 @@
  * Emits zero-buffering HTTP payloads directly to FastAPI `/api/telemetry` (< 5ms latency).
  */
 const http = require('http');
+const https = require('https');
 
 function sendTelemetry(event) {
   const telemetryUrl = process.env.DSH_TELEMETRY_URL || 'http://127.0.0.1:8000/api/telemetry';
   try {
     const url = new URL(telemetryUrl);
+    const isHttps = url.protocol === 'https:';
+    const client = isHttps ? https : http;
+    const defaultPort = isHttps ? 443 : 80;
     const body = JSON.stringify({
       timestamp: Date.now() / 1000,
       service: 'dsh-coding-pipeline',
@@ -31,11 +35,11 @@ function sendTelemetry(event) {
       },
     });
 
-    const req = http.request(
+    const req = client.request(
       {
         hostname: url.hostname,
-        port: url.port || 8000,
-        path: url.pathname,
+        port: url.port ? Number(url.port) : defaultPort,
+        path: url.pathname + url.search,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,6 +52,7 @@ function sendTelemetry(event) {
       }
     );
 
+    req.on('timeout', () => req.destroy());
     req.on('error', () => {}); // Fail-safe non-blocking
     req.write(body);
     req.end();
