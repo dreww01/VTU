@@ -206,8 +206,16 @@ def paystack_webhook(request):
         logger.error(f"Invalid JSON payload in Paystack webhook: {e}")
         return HttpResponseBadRequest("Invalid JSON payload")
 
+    if not isinstance(event, dict):
+        logger.error(f"Paystack webhook payload root is not a dictionary: {type(event).__name__}")
+        return HttpResponseBadRequest("Invalid payload format")
+
     if event.get("event") == "charge.success":
-        data = event.get("data") or {}
+        data = event.get("data")
+        if not isinstance(data, dict):
+            logger.error("Paystack webhook 'data' field is not a dictionary")
+            return HttpResponseBadRequest("Invalid webhook data")
+
         reference = data.get("reference")
         customer = data.get("customer") or {}
         email = customer.get("email") if isinstance(customer, dict) else None

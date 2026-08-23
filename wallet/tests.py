@@ -266,6 +266,60 @@ class PaystackWebhookTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
+    def test_non_dict_json_root_payloads_return_400(self):
+        """Valid JSON containing non-dictionary roots gracefully returns HTTP 400."""
+        non_dict_roots = [
+            ["charge.success", "data"],
+            "just a string",
+            12345,
+            True,
+            False,
+        ]
+        for root in non_dict_roots:
+            payload_bytes = json.dumps(root).encode("utf-8")
+            signature = self._generate_signature(payload_bytes)
+
+            response = self.client.post(
+                self.webhook_url,
+                data=payload_bytes,
+                content_type="application/json",
+                headers={"x-paystack-signature": signature},
+            )
+            self.assertEqual(
+                response.status_code,
+                400,
+                f"Expected HTTP 400 for non-dict root {root!r}, got {response.status_code}",
+            )
+
+    def test_non_dict_data_field_returns_400(self):
+        """Valid JSON event with non-dictionary data field gracefully returns HTTP 400."""
+        non_dict_data_values = [
+            "not-a-dict",
+            [1, 2, 3],
+            100500,
+            True,
+            None,
+        ]
+        for bad_data in non_dict_data_values:
+            payload = {
+                "event": "charge.success",
+                "data": bad_data,
+            }
+            payload_bytes = json.dumps(payload).encode("utf-8")
+            signature = self._generate_signature(payload_bytes)
+
+            response = self.client.post(
+                self.webhook_url,
+                data=payload_bytes,
+                content_type="application/json",
+                headers={"x-paystack-signature": signature},
+            )
+            self.assertEqual(
+                response.status_code,
+                400,
+                f"Expected HTTP 400 for non-dict data {bad_data!r}, got {response.status_code}",
+            )
+
     def test_missing_required_fields_in_payload_returns_400(self):
         """Payload missing email or reference returns HTTP 400."""
         payload_dict = {
