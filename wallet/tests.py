@@ -159,6 +159,32 @@ class PaystackWebhookTests(TestCase):
         self.assertEqual(tx.wallet, self.wallet)
 
     @override_settings(PAYSTACK_SECRET_KEY=TEST_SECRET_KEY)
+    def test_case_insensitive_email_webhook_credits_wallet(self):
+        """Webhook with customer email in different casing (e.g. mixed/upper case) still matches user."""
+        payload = {
+            "event": "charge.success",
+            "data": {
+                "id": 123457,
+                "reference": "PSK_REF_CASE_1002",
+                "amount": 300000,  # 3,000.00 NGN in kobo
+                "status": "success",
+                "customer": {
+                    "email": "Customer@Example.Com",
+                    "id": 789,
+                },
+            },
+        }
+        payload_bytes = json.dumps(payload).encode("utf-8")
+        sig = compute_signature(payload_bytes, TEST_SECRET_KEY)
+
+        with patch.dict(os.environ, {"PAYSTACK_SECRET_KEY": TEST_SECRET_KEY}):
+            response = self._post_webhook(payload, signature=sig)
+
+        self.assertEqual(response.status_code, 200)
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal("3000.00"))
+
+    @override_settings(PAYSTACK_SECRET_KEY=TEST_SECRET_KEY)
     def test_replaying_webhook_is_idempotent(self):
         """Replaying the exact same webhook payload/reference returns HTTP 200 without double-crediting."""
         payload = {
