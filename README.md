@@ -278,7 +278,7 @@ Configure these variables in your `.env` file (or Google Cloud Secret Manager / 
    uv sync
 
    # Or using pip
-   pip install -r pyproject.toml
+   pip install -e .
    ```
 
 4. **Initialize Environment Variables:**
