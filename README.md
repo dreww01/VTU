@@ -112,7 +112,7 @@
 - **Language:** Python 3.13+
 - **Framework:** Django 6.0+
 - **Database Engine:** PostgreSQL 16+ (Production) / SQLite3 (Development & In-Memory Test Suite)
-- **Database Adapter:** `dj-database-url`, `psycopg2-binary`
+- **Database Adapter:** `dj-database-url`, `psycopg[binary]>=3.3.2` (Psycopg 3)
 - **HTTP Client:** `httpx 0.28+` for resilient external API integration
 - **WSGI / ASGI Servers:** `gunicorn 23.0+`, `uvicorn 0.34+`
 
