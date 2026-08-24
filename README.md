@@ -475,6 +475,12 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
 
 ---
 
+## DSH Temporal Smoke Test
+
+This repository can be used to verify the DSH automated builder pipeline.
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:
