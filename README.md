@@ -477,7 +477,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed instructions on local setup, code standards, testing, and pull requests.
 
 ### Development Workflow
 
