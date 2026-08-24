@@ -2,16 +2,16 @@
 
 # 🚀 Nova VTU
 
-### Virtual Top-Up Platform for Nigeria
+### Enterprise-Grade Virtual Top-Up & Utility Payment Platform for Nigeria
 
-*Buy airtime, data bundles, and pay electricity bills seamlessly*
+*Instant airtime, data bundles, and electricity utility payments backed by robust financial integrity and fraud protection.*
 
 [![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-6.0+-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-MVP-orange?style=for-the-badge)]()
+[![Status](https://img.shields.io/badge/Status-Production--Ready-brightgreen?style=for-the-badge)]()
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [API Integration](#-api-integrations) • [Contributing](#-contributing)
+[Features](#-features) • [Tech Stack](#-tech-stack) • [Quick Start](#-quick-start) • [Architecture](#-project-structure) • [API & Routing](#-application-routing--api-reference) • [VTU Provider](#-vtu-service-provider-integration-vtpass) • [Security & Fraud](#-security-fraud-prevention--rate-limiting) • [Deployment](#-deployment-guides)
 
 </div>
 
@@ -19,200 +19,115 @@
 
 ## 📋 Table of Contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Quick Start](#-quick-start)
-- [Environment Setup](#-environment-setup)
-- [Project Structure](#-project-structure)
-- [API Integrations](#-api-integrations)
-- [Usage Guide](#-usage-guide)
-- [Security & Fraud Prevention](#-security--fraud-prevention)
-- [Deployment](#-deployment)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [🌟 Overview](#-overview)
+- [✨ Features](#-features)
+  - [End-User Capabilities](#end-user-capabilities)
+  - [Administrative & Operational Capabilities](#administrative--operational-capabilities)
+- [🛠️ Tech Stack & Key Dependencies](#-tech-stack--key-dependencies)
+- [📁 Project Structure](#-project-structure)
+- [🔐 Complete Environment Variables Reference](#-complete-environment-variables-reference)
+- [🚀 Quick Start & Local Development](#-quick-start--local-development)
+  - [Prerequisites](#prerequisites)
+  - [Step-by-Step Installation](#step-by-step-installation)
+- [🌐 Application Routing & API Reference](#-application-routing--api-reference)
+  - [Accounts & Authentication](#accounts--authentication)
+  - [Wallet Management](#wallet-management)
+  - [VTU & Utility Transactions](#vtu--utility-transactions)
+  - [System Endpoints](#system-endpoints)
+- [🔌 Payment Gateway Integration (Paystack)](#-payment-gateway-integration-paystack)
+  - [Wallet Funding Lifecycle](#wallet-funding-lifecycle)
+  - [Webhook Signature Verification](#webhook-signature-verification)
+- [⚡ VTU Service Provider Integration (VTPass)](#-vtu-service-provider-integration-vtpass)
+  - [Supported Services & Disco Providers](#supported-services--disco-providers)
+  - [Airtime & Data Variations](#airtime--data-variations)
+  - [Electricity Meter Verification & Token Delivery](#electricity-meter-verification--token-delivery)
+- [💳 Financial Integrity & Wallet Mechanics](#-financial-integrity--wallet-mechanics)
+  - [Atomic Operations & Concurrency Locking](#atomic-operations--concurrency-locking)
+  - [Financial Boundary Invariants](#financial-boundary-invariants)
+- [🛡️ Security, Fraud Prevention & Rate Limiting](#-security-fraud-prevention--rate-limiting)
+  - [Tiered Transaction Limits](#tiered-transaction-limits)
+  - [Granular Rate Limiting](#granular-rate-limiting)
+  - [Security Headers & Cookie Policies](#security-headers--cookie-policies)
+  - [Exception Hierarchy](#exception-hierarchy)
+- [⚙️ Management Commands & CLI Utilities](#-management-commands--cli-utilities)
+  - [Pending Transaction Re-checker (`recheck_pending_vtu`)](#pending-transaction-re-checker-recheck_pending_vtu)
+- [💾 Database Backup & Disaster Recovery](#-database-backup--disaster-recovery)
+  - [Automated Compressed Backups (`backup.sh`)](#automated-compressed-backups-backupsh)
+  - [Safe Database Restores (`restore.sh`)](#safe-database-restores-restoresh)
+- [🐳 Docker & Container Orchestration](#-docker--container-orchestration)
+  - [Service Architecture](#service-architecture)
+  - [Docker Compose Workflows](#docker-compose-workflows)
+- [🚢 Deployment Guides](#-deployment-guides)
+  - [1. Google Cloud Run + Neon PostgreSQL (Recommended)](#1-google-cloud-run--neon-postgresql-recommended)
+  - [2. Multi-Container Docker Stack](#2-multi-container-docker-stack)
+  - [3. Traditional VPS (Nginx + Gunicorn + Systemd)](#3-traditional-vps-nginx--gunicorn--systemd)
+- [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
+- [🔧 Troubleshooting & FAQ](#-troubleshooting--faq)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
+- [🗺️ Roadmap](#-roadmap)
 
 ---
 
 ## 🌟 Overview
 
-**Nova VTU** is a modern Django-based Virtual Top-Up platform designed for the Nigerian market. It provides a secure, user-friendly interface for purchasing digital services including airtime, data bundles, and electricity bill payments.
+**Nova VTU** is a production-grade Django 6.0+ platform engineered specifically for virtual top-ups and utility bill settlements across Nigeria. Built on top of Python 3.13, it connects end consumers directly to telecom operators (MTN, Airtel, GLO, 9mobile) and regional electricity distribution companies (Discos) via the VTPass API, backed by seamless wallet funding through Paystack.
 
-### Why Nova VTU?
+### Core Architectural Values
 
-- ✅ **Secure Payments** - Integrated with Paystack for safe transactions
-- ✅ **Instant Processing** - Real-time VTU service delivery via VTPass
-- ✅ **Fraud Protection** - Built-in transaction limits and verification
-- ✅ **Email Notifications** - Automated receipts and confirmations
-- ✅ **Modern UI** - Clean, responsive design with Tailwind CSS
-- ✅ **Admin Dashboard** - Comprehensive management with Django Unfold
+- 🔒 **Defensive Financial Engineering:** Strict database row-level locking (`select_for_update`) and atomic transactions eliminate race conditions and double-spending across wallet operations.
+- ⚡ **Asynchronous Resiliency:** Intelligent query and requery workflows automatically reconcile delayed provider responses without stranding user funds.
+- 🛡️ **Tiered Risk & Fraud Engine:** Real-time single, hourly, and daily transaction rate and volume throttling tailored by KYC verification tiers.
+- 📧 **Automated Multichannel Communications:** Instant purchase notifications, prepaid electricity token delivery, and wallet receipts via Resend SMTP.
+- 🎨 **Modern User & Admin Interfaces:** Responsive mobile-first UI powered by Tailwind CSS, coupled with an operational command center built on Django Unfold.
 
 ---
 
 ## ✨ Features
 
-### Core Functionality
+### End-User Capabilities
 
-| Feature | Description |
-|---------|-------------|
-| 🔐 **User Authentication** | Secure registration, login, password reset with email verification |
-| 💳 **Wallet System** | Fund wallet via Paystack, track balance in real-time |
-| 📱 **Airtime Purchase** | Buy airtime for MTN, Airtel, GLO, 9mobile |
-| 📊 **Data Bundles** | Purchase data plans from all major Nigerian networks |
-| ⚡ **Electricity Bills** | Pay PREPAID electricity bills with instant token delivery |
-| 📜 **Transaction History** | View, filter, and download transaction receipts |
-| 👤 **Profile Management** | Update profile info, upload avatar, manage account |
-| 📧 **Email Notifications** | Automated confirmations for purchases and wallet funding |
-| 🛡️ **Fraud Detection** | Transaction limits based on user verification status |
+| Capability | Technical Detail |
+|---|---|
+| 🔐 **Account Lifecycle** | Secure user registration, authentication, profile management with avatar uploads, and email-based password reset. |
+| 💳 **Instant Wallet Funding** | Direct wallet top-up via Paystack checkout with cryptographic webhook signature validation. |
+| 📱 **Airtime Purchase** | Instant top-up across MTN, Airtel, GLO, and 9mobile with phone number validation. |
+| 📊 **Data Bundles** | Flexible data bundle procurement from daily micro-bundles to monthly bulk subscriptions. |
+| ⚡ **Electricity Bill Payment** | Prepaid meter validation via VTPass Merchant Verify before payment, with instant token generation on receipt. |
+| 📜 **Auditable Transaction History** | Searchable, filterable transaction histories with dedicated receipt views for airtime, data, and electricity. |
+| 📧 **Transaction Receipts** | Real-time HTML email delivery for top-up confirmations and electricity tokens. |
 
-### Admin Features
+### Administrative & Operational Capabilities
 
-- 📊 Modern admin dashboard powered by Django Unfold
-- 🔍 Manual transaction recheck for pending transactions
-- ⚙️ Maintenance mode toggle
-- 📈 Transaction monitoring and management
-- 🚨 Fraud prevention controls
+- 📊 **Django Unfold Command Center:** Clean dashboard monitoring users, wallets, transaction statuses, and provider logs.
+- 🔍 **Automated Transaction Re-checker:** Custom Django management command (`recheck_pending_vtu`) to poll provider APIs and resolve pending states.
+- ⚙️ **Runtime App Settings:** Database-driven toggles for platform maintenance mode and automated fraud controls.
+- 📈 **Auditing & Telemetry:** Verbose structured logging across `accounts`, `wallet`, and `transactions` domains.
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Key Dependencies
 
-### Backend
-- **Framework:** Django 6.0+
+### Backend & Core Systems
 - **Language:** Python 3.13+
-- **Database:** SQLite3 (Development) / PostgreSQL (Production)
-- **Payment Gateway:** Paystack
-- **VTU Provider:** VTPass
+- **Framework:** Django 6.0+
+- **Database Engine:** PostgreSQL 16+ (Production) / SQLite3 (Development & In-Memory Test Suite)
+- **Database Adapter:** `dj-database-url`, `psycopg2-binary`
+- **HTTP Client:** `httpx 0.28+` for resilient external API integration
+- **WSGI / ASGI Servers:** `gunicorn 23.0+`, `uvicorn 0.34+`
 
-### Frontend
-- **CSS Framework:** Tailwind CSS
-- **Templates:** Django Templates
-- **Icons:** Heroicons / Font Awesome
+### Frontend & Templating
+- **Styling:** Tailwind CSS (responsive mobile-first design)
+- **Icons:** Heroicons & Font Awesome
+- **Admin Theme:** `django-unfold 0.73+`
+- **Static Assets:** `whitenoise 6.8+` with compressed manifest storage
 
-### Key Dependencies
-```
-django>=6.0
-django-unfold>=0.73.1         # Modern admin UI
-django-ratelimit>=4.1.0       # API rate limiting
-httpx>=0.28.0                 # HTTP client for API calls
-paystack>=1.5.0               # Paystack integration
-pillow>=12.0.0                # Image processing
-python-dotenv>=1.2.1          # Environment management
-whitenoise>=6.8.2             # Static file serving
-```
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.13 or higher
-- pip or uv package manager
-- Git
-
-### Installation
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/dreww01/VTU.git
-cd nova-vtu
-```
-
-2. **Create and activate virtual environment**
-```bash
-# Using venv
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Or using uv (recommended)
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-# Using pip
-pip install -r pyproject.toml
-
-# Or using uv (recommended)
-uv sync
-```
-
-4. **Set up environment variables**
-```bash
-cp .env.example .env
-# Edit .env with your API keys (see Environment Setup section)
-```
-
-5. **Run migrations**
-```bash
-python manage.py migrate
-```
-
-6. **Create a superuser**
-```bash
-python manage.py createsuperuser
-```
-
-7. **Run the development server**
-```bash
-python manage.py runserver
-```
-
-8. **Access the application**
-- Frontend: http://127.0.0.1:8000
-- Admin: http://127.0.0.1:8000/admin
-- Dashboard: http://127.0.0.1:8000/dashboard (after login)
-
----
-
-## 🔐 Environment Setup
-
-Create a `.env` file in the project root with the following variables:
-
-### Django Settings
-```env
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
-```
-
-> 💡 **Generate Secret Key:** `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
-
-### Paystack Configuration
-Sign up at [Paystack](https://dashboard.paystack.com) and get your API keys:
-
-```env
-PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxx
-PAYSTACK_PUBLIC_KEY=pk_test_xxxxxxxxxxxxxxxxxxxx
-```
-
-### VTPass Configuration
-Register at [VTPass](https://vtpass.com) for VTU services:
-
-```env
-VTPASS_BASE_URL=https://sandbox.vtpass.com/api
-VTPASS_API_KEY=your_api_key
-VTPASS_SECRET_KEY=SK_your_secret_key
-VTPASS_PUBLIC_KEY=PK_your_public_key
-```
-
-### Email Configuration (Resend)
-Get API key from [Resend](https://resend.com):
-
-```env
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-DEFAULT_FROM_EMAIL=Nova VTU <noreply@yourdomain.com>
-```
-
-### Optional: Database (Production)
-For production, use PostgreSQL:
-
-```env
-DATABASE_URL=postgresql://user:password@host:5432/nova_vtu?sslmode=require
-```
+### Integrations & Services
+- **Payment Processing:** Paystack API
+- **Telecom & Utilities Provider:** VTPass API (Airtime, Data, Electricity)
+- **Transactional Email:** Resend SMTP
+- **Cloud Storage:** Google Cloud Storage (`django-storages[google]`)
+- **Rate Limiting:** `django-ratelimit 4.1+` with custom middleware
 
 ---
 
@@ -220,367 +135,616 @@ DATABASE_URL=postgresql://user:password@host:5432/nova_vtu?sslmode=require
 
 ```
 VTU/
-├── accounts/                   # User authentication & profiles
-│   ├── migrations/
-│   ├── models.py              # UserProfile model
-│   ├── views.py               # Auth views (login, register, profile)
-│   ├── urls.py
-│   └── signals.py             # Auto-create profile on user registration
+├── accounts/                      # Authentication & user profile domain
+│   ├── migrations/                # Database migrations for accounts
+│   ├── admin.py                   # Custom Unfold admin registration
+│   ├── apps.py                    # App configuration & signal registration
+│   ├── forms.py                   # Registration, login, profile, and password reset forms
+│   ├── models.py                  # UserProfile model & KYC tier tracking
+│   ├── signals.py                 # Automatic UserProfile creation on User post_save
+│   ├── tests.py                   # Comprehensive unit & integration tests
+│   ├── urls.py                    # Account routing (/login, /register, /account/profile, etc.)
+│   ├── validators.py              # Phone number & custom input validators
+│   └── views.py                   # Auth controllers & dashboard renderers
 │
-├── wallet/                     # Wallet & payment system
-│   ├── migrations/
-│   ├── models.py              # Wallet model
-│   ├── views.py               # Fund, verify, webhook handlers
-│   └── urls.py
+├── wallet/                        # Financial ledger & wallet balance management
+│   ├── migrations/                # Wallet schema migrations
+│   ├── admin.py                   # Wallet & funding transaction admin views
+│   ├── apps.py                    # Wallet app configuration
+│   ├── models.py                  # Wallet model (atomic deposit & purchase logic)
+│   ├── urls.py                    # Wallet routes (/wallet/info, /wallet/fund, etc.)
+│   └── views.py                   # Paystack initialization, verification, & webhook handlers
 │
-├── transactions/               # VTU services
-│   ├── migrations/
-│   ├── models.py              # Transaction, AppSettings models
-│   ├── views.py               # Service purchase views
-│   ├── urls.py
-│   ├── admin.py               # Admin configuration
-│   ├── providers/             # External API integrations
-│   │   ├── __init__.py
-│   │   ├── vtpass.py          # VTPass API client
-│   │   └── exceptions.py      # Custom exceptions
-│   └── services/              # Business logic
-│       ├── airtime.py         # Airtime purchase logic
-│       ├── data.py            # Data bundle logic
-│       ├── electricity.py     # Electricity payment logic
-│       ├── fraud_check.py     # Fraud prevention
-│       └── verification.py    # Meter/service verification
+├── transactions/                  # VTU services, telecom & utility providers
+│   ├── management/
+│   │   └── commands/
+│   │       └── recheck_pending_vtu.py  # Periodic pending transaction reconciler
+│   ├── migrations/                # Schema migrations for transactions & app settings
+│   ├── providers/                 # Third-party provider client adapters
+│   │   ├── exceptions.py          # Provider-level error definitions
+│   │   └── vtpass.py              # VTPass API client (Airtime, Data, Electricity, Verify)
+│   ├── services/                  # Encapsulated business logic services
+│   │   ├── airtime.py             # Airtime top-up execution service
+│   │   ├── data.py                # Data bundle purchase service & plan catalog
+│   │   ├── electricity.py         # Electricity bill payment service & DISCO mappings
+│   │   ├── fraud_check.py         # Multi-tiered fraud & rate limit evaluator
+│   │   ├── verification.py        # Meter validation & transaction status requery engine
+│   │   └── vtu_service.py         # Service routing facade
+│   ├── admin.py                   # Transaction & AppSettings administration
+│   ├── models.py                  # Transaction and AppSettings models
+│   ├── urls.py                    # Service routes (/airtime, /data, /electricity, receipts)
+│   └── views.py                   # Service purchase views & receipt generators
 │
-├── config/                     # Project settings
-│   ├── settings.py            # Django settings
-│   ├── urls.py                # URL routing
-│   ├── wsgi.py
-│   └── middleware.py          # Custom middleware
+├── config/                        # Django application configuration & orchestration
+│   ├── asgi.py                    # ASGI application entrypoint
+│   ├── middleware.py              # Custom RateLimitMiddleware & security hooks
+│   ├── settings.py                # Environment-aware Django settings
+│   ├── urls.py                    # Root URL router & healthcheck endpoint
+│   └── wsgi.py                    # WSGI application entrypoint for Gunicorn
 │
-├── templates/                  # HTML templates
-│   ├── accounts/              # Auth templates
-│   ├── wallet/                # Wallet templates
-│   ├── transactions/          # Transaction templates
-│   ├── emails/                # Email templates
-│   ├── errors/                # Error pages (404, 500, 429)
-│   └── layout.html            # Base template
+├── docs/                          # In-depth architectural & deployment guides
+│   ├── DEPLOY.md                  # Quick Cloud Run + Neon PostgreSQL deployment
+│   └── GCP_DEPLOYMENT_GUIDE.md    # Comprehensive GCP deployment guide with CI/CD
 │
-├── media/                      # User-uploaded files
-│   └── avatars/               # Profile pictures
+├── nginx/                         # Reverse proxy configuration
+│   ├── conf.d/
+│   │   └── nova-vtu.conf          # Nginx virtual host with SSL & rate limit proxies
+│   └── nginx.conf                 # Master Nginx configuration
 │
-├── static/                     # Static assets (CSS, JS, images)
+├── scripts/                       # Operational & disaster recovery utilities
+│   └── backup/
+│       ├── backup.sh              # PostgreSQL backup script with gzip & S3 upload
+│       └── restore.sh             # Safe database restoration script
 │
-├── scripts/                    # Utility scripts
-│   └── backup/                # Database backup/restore scripts
+├── templates/                     # Django HTML templates
+│   ├── accounts/                  # Login, register, profile, password reset, dashboard
+│   ├── emails/                    # HTML email receipts & onboarding templates
+│   ├── errors/                    # Custom error pages (400, 403, 404, 429, 500)
+│   ├── includes/                  # Reusable form errors & alert banners
+│   ├── transactions/              # Airtime, data, electricity purchase & receipt templates
+│   ├── wallet/                    # Wallet info, funding, and payment confirmation
+│   └── layout.html                # Base layout with navigation & responsive drawer
 │
-├── .env.example               # Environment template
-├── .gitignore
-├── pyproject.toml             # Project dependencies
-├── manage.py                  # Django management script
-├── Dockerfile                 # Docker configuration
-├── docker-compose.yml         # Docker Compose setup
-├── DEPLOYMENT.md              # Deployment guide
-└── README.md                  # This file
+├── media/                         # User-uploaded files (avatars)
+├── staticfiles/                   # Collected static assets for Whitenoise
+├── docker-compose.yml             # Local & production multi-container orchestration
+├── Dockerfile                     # Multi-stage production container image
+├── pyproject.toml                 # Project metadata and locked dependency manifests
+└── README.md                      # Platform documentation
 ```
 
 ---
 
-## 🔌 API Integrations
+## 🔐 Complete Environment Variables Reference
 
-### Paystack Payment Gateway
+Configure these variables in your `.env` file (or Google Cloud Secret Manager / Docker secrets in production):
 
-**Purpose:** Secure wallet funding
-
-**Flow:**
-1. User initiates wallet funding
-2. Paystack payment page opens
-3. User completes payment
-4. Webhook verifies transaction
-5. Wallet credited automatically
-
-**Endpoints Used:**
-- Initialize Transaction: `/transaction/initialize`
-- Verify Transaction: `/transaction/verify/:reference`
-- Webhook: `/paystack/webhook/` (receives payment notifications)
-
-### VTPass VTU Provider
-
-**Purpose:** Airtime, data, and electricity services
-
-**Services Implemented:**
-
-| Service | Service ID | Networks/Providers |
-|---------|-----------|-------------------|
-| Airtime | `mtn`, `airtel`, `glo`, `etisalat` | All Nigerian networks |
-| Data | `mtn-data`, `airtel-data`, `glo-data`, `etisalat-data` | All Nigerian networks |
-| Electricity | `ikeja-electric`, `eko-electric`, `abuja-electric`, etc. | PREPAID meters only |
-
-**API Endpoints:**
-- Service verification: `/api/service-variations`
-- Purchase: `/api/pay`
-- Verify meter number: `/api/merchant-verify`
+| Variable | Type | Default / Example | Required | Subsystem / Purpose |
+|---|---|---|---|---|
+| `SECRET_KEY` | String | `django-insecure-...` | **Yes** | Django cryptographic signing key. Must be unique and unpredictable in production. |
+| `DEBUG` | Boolean | `True` | No | Enables debug mode. **Must be set to `False` in production.** |
+| `ALLOWED_HOSTS` | Comma-separated | `127.0.0.1,localhost,.run.app` | No | Whitelist of host/domain names that this Django site can serve. |
+| `CSRF_TRUSTED_ORIGINS` | Comma-separated | `https://*.run.app` | No | Trusted origins for unsafe HTTP requests (e.g. POST) under HTTPS. |
+| `DATABASE_URL` | URI String | `sqlite:///db.sqlite3` | No | Database connection URL. Supports PostgreSQL (`postgresql://user:pass@host:5432/db?sslmode=require`). |
+| `PAYSTACK_SECRET_KEY` | String | `sk_test_...` / `sk_live_...` | **Yes** | Paystack secret key used for backend API authorization and webhook verification. |
+| `PAYSTACK_PUBLIC_KEY` | String | `pk_test_...` / `pk_live_...` | **Yes** | Paystack public key used in client-side transaction initialization. |
+| `VTPASS_BASE_URL` | URL | `https://sandbox.vtpass.com/api` | No | VTPass API base endpoint. Switch to `https://vtpass.com/api` in production. |
+| `VTPASS_API_KEY` | String | `your_api_key` | **Yes** | VTPass user account API key. |
+| `VTPASS_SECRET_KEY` | String | `SK_your_secret_key` | **Yes** | VTPass secret key used for authenticating VTU purchase requests. |
+| `VTPASS_PUBLIC_KEY` | String | `PK_your_public_key` | **Yes** | VTPass public key for service queries. |
+| `RESEND_API_KEY` | String | `re_...` | No | Resend API key for sending transactional emails over SMTP. |
+| `DEFAULT_FROM_EMAIL` | String | `Nova VTU <delivered@resend.dev>` | No | Default sender address for receipts and notifications. |
+| `GS_BUCKET_NAME` | String | `nova-vtu-media` | No | Optional Google Cloud Storage bucket name for persistent user media files. |
+| `POSTGRES_DB` | String | `nova_vtu` | No | Database name for Docker / PostgreSQL scripts. |
+| `POSTGRES_USER` | String | `nova_vtu` | No | Database username for Docker / PostgreSQL scripts. |
+| `POSTGRES_PASSWORD` | String | `nova_vtu_password` | No | Database password for Docker / PostgreSQL scripts. |
+| `S3_BUCKET` | String | `my-backup-bucket` | No | Optional AWS S3 bucket for automated database backup archiving. |
+| `AWS_ACCESS_KEY_ID` | String | `AKIA...` | No | AWS access key for S3 backup uploads. |
+| `AWS_SECRET_ACCESS_KEY` | String | `wJalr...` | No | AWS secret key for S3 backup uploads. |
+| `AWS_REGION` | String | `us-east-1` | No | AWS region for S3 backup bucket. |
 
 ---
 
-## 📖 Usage Guide
+## 🚀 Quick Start & Local Development
 
-### For Users
+### Prerequisites
 
-#### 1. Register an Account
-- Navigate to `/register`
-- Fill in username, email, password
-- Verify email (check spam folder)
-- Login at `/login`
+- **Python:** 3.13 or higher
+- **Package Manager:** `uv` (recommended) or `pip`
+- **Git**
 
-#### 2. Fund Your Wallet
-- Go to Dashboard → Wallet
-- Click "Fund Wallet"
-- Enter amount (minimum ₦100)
-- Complete payment via Paystack
-- Wallet credited automatically
+### Step-by-Step Installation
 
-#### 3. Purchase Services
+1. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/dreww01/VTU.git
+   cd VTU
+   ```
 
-**Airtime:**
-1. Dashboard → Buy Airtime
-2. Select network (MTN, Airtel, GLO, 9mobile)
-3. Enter phone number and amount
-4. Confirm purchase
-5. Receive confirmation email
+2. **Set Up a Virtual Environment:**
+   ```bash
+   # Using uv (fastest)
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-**Data:**
-1. Dashboard → Buy Data
-2. Select network
-3. Choose data plan from dropdown
-4. Enter phone number
-5. Confirm purchase
+   # Or using standard python venv
+   python3.13 -m venv venv
+   source venv/bin/activate
+   ```
 
-**Electricity:**
-1. Dashboard → Pay Electricity
-2. Select provider (e.g., Ikeja Electric)
-3. Enter meter number
-4. System verifies meter details
-5. Enter amount
-6. Receive token via email and on-screen
+3. **Install Dependencies:**
+   ```bash
+   # Using uv
+   uv sync
 
-#### 4. View Transaction History
-- Dashboard → Transaction History
-- Filter by date or type
-- Download receipts (PDF/Email)
+   # Or using pip
+   pip install -r pyproject.toml
+   ```
 
-### For Administrators
+4. **Initialize Environment Variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   Generate a secure secret key and set it in `.env`:
+   ```bash
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   ```
 
-#### Access Admin Panel
-- Navigate to `/admin`
-- Login with superuser credentials
+5. **Run Migrations & Initialize Database:**
+   ```bash
+   python manage.py migrate
+   ```
 
-#### Manage Transactions
-- View all transactions
-- Manually recheck pending transactions
-- Update transaction statuses
-- View fraud alerts
+6. **Create an Administrator Account:**
+   ```bash
+   python manage.py createsuperuser
+   ```
 
-#### System Settings
-- Toggle fraud checks on/off
-- Enable/disable maintenance mode
-- Monitor user activity
+7. **Start the Development Server:**
+   ```bash
+   python manage.py runserver 127.0.0.1:8000
+   ```
 
----
-
-## 🛡️ Security & Fraud Prevention
-
-### Transaction Limits
-
-**Unverified Users** (default):
-- Single transaction: ₦5,000
-- Daily limit: ₦20,000
-- Hourly limit: 5 transactions
-
-**Verified Users** (future KYC):
-- Single transaction: ₦50,000
-- Daily limit: ₦200,000
-- Hourly limit: 20 transactions
-
-### Security Features
-
-- ✅ Atomic wallet transactions (prevents race conditions)
-- ✅ Database row locking during wallet operations
-- ✅ Paystack webhook signature verification
-- ✅ Rate limiting on API endpoints
-- ✅ CSRF protection
-- ✅ Password hashing (Django's built-in)
-- ✅ HTTPS enforcement in production
-- ✅ Secure session management
-
-### Error Handling
-
-Custom exceptions for better error tracking:
-- `InsufficientBalanceError` - Wallet balance too low
-- `FraudCheckError` - Transaction exceeds limits
-- `MeterVerificationError` - Invalid meter number
-- `VTPassError` - VTU provider API errors
+8. **Verify System Endpoints:**
+   - **User Portal:** [http://127.0.0.1:8000](http://127.0.0.1:8000)
+   - **Admin Command Center:** [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)
+   - **Health Check:** [http://127.0.0.1:8000/health/](http://127.0.0.1:8000/health/) (returns `{"status": "healthy"}`)
 
 ---
 
-## 🚢 Deployment
+## 🌐 Application Routing & API Reference
 
-### Production Checklist
+### Accounts & Authentication
 
-- [ ] Set `DEBUG=False` in production
-- [ ] Generate new `SECRET_KEY`
-- [ ] Configure `ALLOWED_HOSTS`
-- [ ] Set up PostgreSQL database
-- [ ] Use production Paystack/VTPass keys
-- [ ] Configure HTTPS/SSL
-- [ ] Set up email service (Resend/Gmail)
-- [ ] Configure static files with Whitenoise
-- [ ] Set up backup scripts
-- [ ] Enable logging and monitoring
+| HTTP Method | Route URL | View Name | Auth Required | Description |
+|---|---|---|---|---|
+| `GET` | `/` | `dashboard` | Yes | Main dashboard overview (balance, recent transactions, quick actions). |
+| `GET`, `POST` | `/login/` | `login` | No | User authentication endpoint with rate limiting (`5/min`). |
+| `GET`, `POST` | `/register/` | `register` | No | New user onboarding with profile initialization (`3/min`). |
+| `GET`, `POST` | `/logout/` | `logout` | Yes | Terminates authenticated user session. |
+| `GET`, `POST` | `/password_reset/` | `password_reset` | No | Dispatches one-time password reset verification codes (`3/min`). |
+| `GET`, `POST` | `/password_reset_confirm/` | `password_reset_confirm` | No | Validates reset token and sets new password. |
+| `GET`, `POST` | `/account/profile/` | `profile` | Yes | Displays and updates user profile, names, phone number, and avatar. |
+| `GET` | `/services/` | `vtu_services` | Yes | Central navigation hub for all top-up and utility services. |
 
-### Deployment Options
+### Wallet Management
 
-#### 1. **Google Cloud Platform (Recommended)**
-Complete guides available in [.claude/deployment/](.claude/deployment/):
-- **[Quick Start](.claude/deployment/quick-start.md)** - Deploy in 30 minutes with step-by-step commands
-- **[Full Guide](.claude/deployment/gcp-deployment.md)** - Comprehensive GCP deployment documentation
-- **[Local Testing](.claude/deployment/local-testing.md)** - Test Docker setup before deployment
+| HTTP Method | Route URL | View Name | Auth Required | Description |
+|---|---|---|---|---|
+| `GET` | `/wallet/info/` | `wallet_info` | Yes | Returns current wallet balance and recent ledger items. |
+| `GET`, `POST` | `/wallet/fund/` | `fund_wallet` | Yes | Initiates a Paystack checkout transaction to deposit funds. |
+| `GET` | `/wallet/verify/<reference>/` | `verify_payment` | Yes | Verifies Paystack transaction reference and credits wallet balance. |
+| `POST` | `/wallet/webhook/` | `paystack_webhook` | No | Paystack webhook receiver validating `x-paystack-signature` HMAC. |
 
-**Tech Stack:** Cloud Run + Cloud SQL (PostgreSQL) + Cloud Storage
+### VTU & Utility Transactions
 
-**Cost:** ~$15-30/month for low-medium traffic
+| HTTP Method | Route URL | View Name | Auth Required | Description |
+|---|---|---|---|---|
+| `GET` | `/transactions/history/` | `transaction_history` | Yes | Paginated and filterable transaction log with search options. |
+| `GET`, `POST` | `/transactions/airtime/buy/` | `buy_airtime` | Yes | Purchase airtime for MTN, Airtel, GLO, or 9mobile. |
+| `GET`, `POST` | `/transactions/data/buy/` | `buy_data` | Yes | Purchase data bundles across Nigerian telecom networks. |
+| `GET`, `POST` | `/transactions/electricity/buy/` | `pay_electricity` | Yes | Verify meter and purchase prepaid/postpaid electricity units. |
+| `GET` | `/transactions/airtime/receipt/<reference>/` | `airtime_receipt` | Yes | Download or view formatted receipt for airtime purchase. |
+| `GET` | `/transactions/data/receipt/<reference>/` | `data_receipt` | Yes | Download or view formatted receipt for data purchase. |
+| `GET` | `/transactions/electricity/receipt/<reference>/` | `electricity_receipt` | Yes | View electricity token receipt with meter information. |
+| `POST` | `/transactions/webhook/vtpass/` | `vtpass_webhook` | No | VTPass asynchronous transaction status notification endpoint. |
 
-**Quick Deploy:**
-```bash
-# See .claude/deployment/quick-start.md for full commands
-gcloud builds submit --tag gcr.io/PROJECT_ID/nova-vtu
-gcloud run deploy nova-vtu --image gcr.io/PROJECT_ID/nova-vtu
+### System Endpoints
+
+| HTTP Method | Route URL | Description |
+|---|---|---|
+| `GET` | `/health/` | Health check endpoint returning HTTP 200 `{"status": "healthy"}` for load balancers. |
+| `GET`, `POST` | `/admin/` | Unfold administration command center. |
+
+---
+
+## 🔌 Payment Gateway Integration (Paystack)
+
+### Wallet Funding Lifecycle
+
+```
+[ User ] --( 1. Enter Amount >= ₦100 )--> [ Nova VTU /wallet/fund/ ]
+                                                      |
+                                         ( 2. Initialize Transaction )
+                                                      |
+                                                      v
+[ Paystack Checkout ] <----------------- [ Paystack API ]
+        |
+   ( 3. Payment Complete )
+        |
+        +-----------------------------------+
+        |                                   |
+( 4. User Redirect )              ( 5. Webhook POST )
+        |                                   |
+        v                                   v
+[ /wallet/verify/<ref> ]        [ /wallet/webhook/ ]
+        |                                   |
+        +-------------> [ Atomic Deposit ] <-+
+                        - Row-level lock (`select_for_update`)
+                        - Balance integrity check
+                        - Credit Wallet & Mark Completed
 ```
 
-#### 2. **Docker / Docker Compose**
+### Webhook Signature Verification
+
+All incoming Paystack webhook requests are cryptographically validated against your `PAYSTACK_SECRET_KEY` using HMAC SHA512:
+
+```python
+# Verification implementation detail in wallet/views.py
+paystack_signature = request.headers.get("x-paystack-signature")
+computed_hash = hmac.new(
+    settings.PAYSTACK_SECRET_KEY.encode("utf-8"),
+    request.body,
+    hashlib.sha512
+).hexdigest()
+
+if not hmac.compare_digest(computed_hash, paystack_signature):
+    return HttpResponseForbidden("Invalid signature")
+```
+
+---
+
+## ⚡ VTU Service Provider Integration (VTPass)
+
+### Supported Services & Disco Providers
+
+Nova VTU maps internal service identifiers to VTPass product gateways:
+
+#### 1. Airtime Top-Up
+- **Networks:** MTN (`mtn`), Airtel (`airtel`), GLO (`glo`), 9mobile (`etisalat`)
+- **Validation:** Nigerian phone format validation (`080...`, `070...`, `090...`, `081...`, `+234...`)
+- **Minimum Purchase:** ₦50.00
+
+#### 2. Data Bundles
+- **Networks:** MTN Data (`mtn-data`), Airtel Data (`airtel-data`), GLO Data (`glo-data`), 9mobile Data (`etisalat-data`)
+- **Catalog:** Dynamic package variations (daily, weekly, monthly, 2-month tiers) with exact variation codes.
+
+#### 3. Electricity Distribution Companies (Discos)
+
+| Internal Key | VTPass Service ID | Distribution Company Name | Coverage Area |
+|---|---|---|---|
+| `ikedc` | `ikeja-electric` | Ikeja Electric | Lagos (Ikeja, Mainland) |
+| `ekedc` | `eko-electric` | Eko Electricity Distribution | Lagos (Island, Lekki, Epe) |
+| `aedc` | `abuja-electric` | Abuja Electricity Distribution | FCT, Niger, Kogi, Nasarawa |
+| `bedc` | `benin-electric` | Benin Electricity Distribution | Edo, Delta, Ondo, Ekiti |
+| `phed` | `portharcourt-electric` | Port Harcourt Electricity | Rivers, Bayelsa, Cross River, Akwa Ibom |
+| `kaedco` | `kaduna-electric` | Kaduna Electric | Kaduna, Kebbi, Sokoto, Zamfara |
+| `kedco` | `kano-electric` | Kano Electricity Distribution | Kano, Katsina, Jigawa |
+| `eedc` | `enugu-electric` | Enugu Electricity Distribution | Enugu, Abia, Imo, Anambra, Ebonyi |
+| `aba` | `aba-electric` | Aba Power Limited Electric | Aba Ring-fenced Area |
+
+### Electricity Meter Verification & Token Delivery
+
+Before accepting payment, Nova VTU executes an automated merchant verification handshake via `/api/merchant-verify`:
+1. Sends `serviceID`, `billersCode` (meter number), and `type` (`prepaid`/`postpaid`) to VTPass.
+2. Extracts and displays the registered customer name and installation address to avoid erroneous payments.
+3. Upon successful prepaid token purchase, parses the generated alphanumeric token from the provider response and stores it directly on the `Transaction` record for immediate receipt rendering and email dispatch.
+
+---
+
+## 💳 Financial Integrity & Wallet Mechanics
+
+### Atomic Operations & Concurrency Locking
+
+To prevent race conditions, balance double-spending, and negative balance states, all balance adjustments utilize database row locking within explicit database transactions:
+
+```python
+with db_transaction.atomic():
+    wallet = Wallet.objects.select_for_update().get(user=user)
+    if wallet.balance < amount:
+        raise InsufficientBalanceError("Insufficient wallet balance.")
+    
+    wallet.balance -= amount
+    wallet.save()
+    
+    # Record transaction ledger
+    transaction = Transaction.objects.create(
+        wallet=wallet,
+        transaction_type="purchase",
+        amount=amount,
+        status="completed"
+    )
+```
+
+### Financial Boundary Invariants
+
+- **Minimum Wallet Deposit:** `₦100.00`
+- **Maximum Single Transaction Limit:** `₦100,000.00`
+- **Maximum Wallet Balance Ceiling:** `₦1,000,000.00`
+- **Precision:** Exact two decimal places (`Decimal("0.01")`) using Python `Decimal` to avoid floating-point drift.
+
+---
+
+## 🛡️ Security, Fraud Prevention & Rate Limiting
+
+### Tiered Transaction Limits
+
+Transactions are subjected to pre-execution fraud checks evaluated against user KYC status (`transactions/services/fraud_check.py`):
+
+| Limit Rule | Unverified Users (Tier 1) | Verified Users (Tier 2 / KYC) |
+|---|---|---|
+| **Max Single Transaction** | ₦5,000 | ₦50,000 |
+| **Max Daily Cumulative Total** | ₦20,000 | ₦200,000 |
+| **Max Hourly Transaction Count** | 5 transactions / hour | 20 transactions / hour |
+
+### Granular Rate Limiting
+
+Configured via `django-ratelimit` and enforced by `config.middleware.RateLimitMiddleware`:
+
+- **Authentication Endpoints (`/login/`):** `5 requests / minute`
+- **Registration Endpoints (`/register/`):** `3 requests / minute`
+- **Password Reset Requests (`/password_reset/`):** `3 requests / minute`
+- **General API Queries:** `60 requests / minute`
+- **Purchase Operations:** `10 requests / minute`
+- **Webhook Receivers:** `100 requests / minute`
+
+### Security Headers & Cookie Policies
+
+When `DEBUG=False` in production:
+- `SECURE_SSL_REDIRECT = True`
+- `SECURE_HSTS_SECONDS = 3600` with subdomains and preload enabled
+- `SESSION_COOKIE_SECURE = True` & `CSRF_COOKIE_SECURE = True`
+- `X_FRAME_OPTIONS = 'DENY'`
+- `SECURE_CONTENT_TYPE_NOSNIFF = True`
+
+### Exception Hierarchy
+
+Nova VTU implements domain-specific exceptions for deterministic error isolation:
+- `InsufficientBalanceError` - Attempted purchase exceeds available wallet balance.
+- `FraudCheckError` - Transaction violated velocity or amount tier boundaries.
+- `InvalidNetworkError` - Supplied network or disco code is not supported.
+- `MeterVerificationError` - Meter validation failed at the provider gateway.
+- `VTPassError` - Upstream communication or fulfillment failure from VTPass.
+
+---
+
+## ⚙️ Management Commands & CLI Utilities
+
+### Pending Transaction Re-checker (`recheck_pending_vtu`)
+
+Automatically polls VTPass for transactions stuck in `pending` status, reconciles their final state, and refunds user wallets if transactions failed upstream:
+
 ```bash
-# Local testing
+# Recheck transactions pending for more than 10 minutes (default)
+python manage.py recheck_pending_vtu
+
+# Specify custom age threshold in minutes
+python manage.py recheck_pending_vtu --max-age 30
+```
+
+#### Production Scheduling
+Set up a cron job or Cloud Scheduler task to run every 5 to 15 minutes:
+```cron
+*/10 * * * * cd /app && python manage.py recheck_pending_vtu >> /var/log/vtu_recheck.log 2>&1
+```
+
+---
+
+## 💾 Database Backup & Disaster Recovery
+
+### Automated Compressed Backups (`backup.sh`)
+
+Automated database dumping with `pg_dump`, gzip compression, retention pruning, and optional AWS S3 sync:
+
+```bash
+# Execute local database backup
+./scripts/backup/backup.sh
+
+# Create backup and upload to AWS S3 (Standard-IA)
+./scripts/backup/backup.sh --upload
+
+# Enforce a custom retention policy (e.g. 30 days)
+./scripts/backup/backup.sh --retention 30
+```
+
+### Safe Database Restores (`restore.sh`)
+
+Performs atomic database restoration inside a single transaction with pre-execution safety confirmations:
+
+```bash
+# Restore specific local archive
+./scripts/backup/restore.sh /backups/nova_vtu_20250101_120000.sql.gz
+
+# Restore latest available local backup
+./scripts/backup/restore.sh --latest
+
+# Fetch archive from S3 and restore
+./scripts/backup/restore.sh --from-s3 nova_vtu_20250101_120000.sql.gz
+
+# Dry-run inspection without applying changes
+./scripts/backup/restore.sh --dry-run /backups/nova_vtu_latest.sql.gz
+```
+
+---
+
+## 🐳 Docker & Container Orchestration
+
+### Service Architecture
+
+The `docker-compose.yml` orchestrates the complete production environment:
+1. **`web`:** Django application running with Gunicorn (`Dockerfile` multi-stage build).
+2. **`db`:** PostgreSQL 16 Alpine container with persistent volume mounts.
+3. **`redis`:** Redis 7 Alpine caching and rate limiting engine.
+4. **`nginx`:** Nginx reverse proxy routing traffic, serving static/media assets, and terminating SSL.
+5. **`certbot`:** Automated Let's Encrypt SSL certificate issuance and 12-hour renewal daemon.
+6. **`backup`:** Scheduled background database backup container.
+
+### Docker Compose Workflows
+
+```bash
+# Start development stack
 docker-compose up -d
 
-# Production
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Start production stack with backup profile
+docker-compose --profile backup up -d
+
+# View application logs
+docker-compose logs -f web
+
+# Execute database migrations inside the container
+docker-compose exec web python manage.py migrate
+
+# Create superuser in Docker
+docker-compose exec web python manage.py createsuperuser
 ```
 
-#### 3. **Railway / Render**
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
+---
 
-#### 4. **Traditional VPS**
-- Use Gunicorn/uWSGI
-- Nginx reverse proxy
-- Systemd service
-- PostgreSQL database
+## 🚢 Deployment Guides
+
+### 1. Google Cloud Run + Neon PostgreSQL (Recommended)
+
+Nova VTU is optimized for serverless container deployment on Google Cloud Run with serverless PostgreSQL (e.g., Neon or Supabase).
+
+Detailed step-by-step instructions:
+- 📖 **Quick Deployment Guide:** [docs/DEPLOY.md](docs/DEPLOY.md)
+- 📘 **Complete GCP & CI/CD Guide:** [docs/GCP_DEPLOYMENT_GUIDE.md](docs/GCP_DEPLOYMENT_GUIDE.md)
+
+#### Quick Deploy Summary:
+```bash
+# 1. Build and push container to Google Container Registry
+gcloud builds submit --tag gcr.io/$PROJECT_ID/nova-vtu
+
+# 2. Deploy Cloud Run service with secrets injection
+gcloud run deploy nova-vtu \
+  --image gcr.io/$PROJECT_ID/nova-vtu \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --memory 512Mi \
+  --set-env-vars "DEBUG=False" \
+  --set-secrets "SECRET_KEY=django-secret-key:latest,DATABASE_URL=database-url:latest,PAYSTACK_SECRET_KEY=paystack-secret-key:latest,PAYSTACK_PUBLIC_KEY=paystack-public-key:latest,VTPASS_API_KEY=vtpass-api-key:latest,VTPASS_SECRET_KEY=vtpass-secret-key:latest,RESEND_API_KEY=resend-api-key:latest"
+
+# 3. Run database migrations via Cloud Run Job
+gcloud run jobs create migrate \
+  --image gcr.io/$PROJECT_ID/nova-vtu \
+  --region us-central1 \
+  --set-secrets "SECRET_KEY=django-secret-key:latest,DATABASE_URL=database-url:latest" \
+  --command "python,manage.py,migrate"
+gcloud run jobs execute migrate --region us-central1
+```
+
+### 2. Multi-Container Docker Stack
+Use `docker-compose.yml` with Nginx and Certbot for self-hosted Linux instances.
+
+### 3. Traditional VPS (Nginx + Gunicorn + Systemd)
+Deploy behind Nginx using the virtual host configuration provided in `nginx/conf.d/nova-vtu.conf`, running Gunicorn as a managed systemd service.
+
+---
+
+## 🧪 Testing & Quality Assurance
+
+Nova VTU includes test coverage covering user onboarding, authentication state invariants, protected route access guards, and transaction flows.
+
+### Running Test Suite
+
+```bash
+# Run tests with python manage.py
+SECRET_KEY=test-secret-key python manage.py test
+
+# Or using uv
+SECRET_KEY=test-secret-key uv run python manage.py test
+```
+
+### Test Isolation Architecture
+- When running in test mode (`sys.argv` contains `"test"`), Django automatically switches `DATABASES['default']` to an in-memory SQLite database (`:memory:`) for test speed and hermetic isolation.
+- Rate limiting is automatically bypassed (`RATELIMIT_ENABLE = False`) during test runs.
+- Email dispatch routes to Django's in-memory `locmem` backend (`EmailBackend`).
+
+---
+
+## 🔧 Troubleshooting & FAQ
+
+### Q: Why do I get `django.core.exceptions.ImproperlyConfigured: SECRET_KEY environment variable is required`?
+**A:** Ensure your `.env` file exists and contains a valid `SECRET_KEY`. When executing tests or CLI scripts directly, pass `SECRET_KEY=your-key` in the shell environment.
+
+### Q: How can I test Paystack webhooks on local development?
+**A:** Use `ngrok` to expose your local server:
+```bash
+ngrok http 8000
+```
+Add your ngrok forwarding domain to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` in `.env`, then configure your webhook URL in Paystack Dashboard to `https://<your-ngrok-id>.ngrok-free.app/wallet/webhook/`.
+
+### Q: Why do static files fail to load in production?
+**A:** In production (`DEBUG=False`), static assets are served through Whitenoise with compressed manifest hashing. Ensure you run:
+```bash
+python manage.py collectstatic --no-input
+```
+prior to starting Gunicorn.
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions to Nova VTU! Follow these steps:
 
-### Development Workflow
-
-1. **Fork the repository**
-2. **Create a feature branch**
+1. **Fork the Repository**
+2. **Create a Feature Branch:**
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feature/amazing-feature
    ```
-3. **Make your changes**
-   - Follow PEP 8 style guide
-   - Add tests if applicable
-   - Update documentation
-4. **Commit your changes**
+3. **Adhere to Code Standards:**
+   - Follow PEP 8 guidelines and include explicit type hints.
+   - Maintain defensive error handling and concurrency row locks for financial operations.
+   - Add unit tests for all new views and services.
+4. **Run Verification Tests:**
    ```bash
-   git commit -m "Add: your feature description"
+   SECRET_KEY=test-key python manage.py test
    ```
-5. **Push to your fork**
+5. **Commit with Conventional Messages:**
    ```bash
-   git push origin feature/your-feature-name
+   git commit -m "feat(transactions): add support for postpaid meter verification"
    ```
 6. **Open a Pull Request**
-
-### Code Style
-
-- Follow Django best practices
-- Use type hints where applicable
-- Write descriptive commit messages
-- Comment complex logic
-- Keep functions small and focused
-
-### Reporting Issues
-
-Found a bug? Have a feature request?
-
-1. Check existing issues first
-2. Open a new issue with:
-   - Clear title and description
-   - Steps to reproduce (for bugs)
-   - Expected vs actual behavior
-   - Screenshots if applicable
 
 ---
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## DSH Temporal Smoke Test
-
-This repository can be used to verify the DSH automated builder pipeline end to end. It serves as a documentation-only smoke test to ensure pipeline execution functions properly.
-
----
-
-## 🙏 Acknowledgments
-
-- [Django](https://www.djangoproject.com/) - Web framework
-- [Paystack](https://paystack.com/) - Payment processing
-- [VTPass](https://vtpass.com/) - VTU services
-- [Django Unfold](https://github.com/unfoldadmin/django-unfold) - Admin UI
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
-
----
-
-## 📞 Support
-
-- **Documentation:** [Project Wiki](#)
-- **Email:** support@novavtu.com
-- **Issues:** [GitHub Issues](https://github.com/dreww01/VTU/issues)
+This project is open-source software licensed under the [MIT License](LICENSE).
 
 ---
 
 ## 🗺️ Roadmap
 
-### Current (MVP)
-- ✅ User authentication
-- ✅ Wallet system
-- ✅ Airtime purchase
-- ✅ Data bundles
-- ✅ Electricity bills (PREPAID)
-- ✅ Transaction history
-- ✅ Email notifications
-
-### Planned Features
-- [ ] KYC verification system
-- [ ] Wallet withdrawal
-- [ ] TV subscription (DSTV, GOTV, Startimes)
-- [ ] Mobile app (React Native)
-- [ ] Referral/bonus system
-- [ ] API for developers
-- [ ] Multi-currency support
-- [ ] Bill reminders
-- [ ] POSTPAID electricity support
+- [x] Comprehensive authentication & user profile management
+- [x] Atomic wallet system with Paystack funding integration
+- [x] Airtime purchase for MTN, Airtel, GLO, and 9mobile
+- [x] Data bundle catalog and purchase integration
+- [x] Prepaid electricity payment with instant meter validation & token delivery
+- [x] Transaction audit trail & downloadable HTML receipts
+- [x] Automated transaction status reconciler (`recheck_pending_vtu`)
+- [x] Multi-tier fraud detection & velocity throttling
+- [x] Multi-container Docker & Nginx SSL setup
+- [ ] Tier 2 KYC identity document verification upload
+- [ ] Cable TV subscriptions (DSTV, GOTV, Startimes, Showmax)
+- [ ] Automated wallet payout / withdrawal system
+- [ ] Developer REST API with personal API token authentication
+- [ ] React Native cross-platform mobile application
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for Nigeria**
-
-⭐ Star this repo if you find it helpful!
-
-[Report Bug](https://github.com/dreww01/VTU/issues) • [Request Feature](https://github.com/dreww01/VTU/issues)
+**Built with ❤️ for reliable digital commerce in Nigeria.**
 
 </div>
