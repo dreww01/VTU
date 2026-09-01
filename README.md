@@ -410,6 +410,8 @@ if not hmac.compare_digest(computed_hash, paystack_signature):
 
 Nova VTU maps internal service identifiers to VTPass product gateways:
 
+### Airtime & Data Variations
+
 #### 1. Airtime Top-Up
 - **Networks:** MTN (`mtn`), Airtel (`airtel`), GLO (`glo`), 9mobile (`etisalat`)
 - **Validation:** Nigerian phone format validation (`080...`, `070...`, `090...`, `081...`, `+234...`)
