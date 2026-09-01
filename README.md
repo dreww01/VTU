@@ -62,6 +62,7 @@
   - [2. Multi-Container Docker Stack](#2-multi-container-docker-stack)
   - [3. Traditional VPS (Nginx + Gunicorn + Systemd)](#3-traditional-vps-nginx--gunicorn--systemd)
 - [🧪 Testing & Quality Assurance](#-testing--quality-assurance)
+- [DSH Temporal Smoke Test](#dsh-temporal-smoke-test)
 - [🔧 Troubleshooting & FAQ](#-troubleshooting--faq)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
@@ -685,6 +686,12 @@ SECRET_KEY=test-secret-key python manage.py test accounts.tests.RegistrationTest
 - When running in test mode (`sys.argv` contains `"test"`), Django automatically switches `DATABASES['default']` to an in-memory SQLite database (`:memory:`) for test speed and hermetic isolation.
 - Rate limiting is automatically bypassed (`RATELIMIT_ENABLE = False`) during test runs.
 - Email dispatch routes to Django's in-memory `locmem` backend (`EmailBackend`).
+
+---
+
+## DSH Temporal Smoke Test
+
+This repository can be used to verify the DSH automated builder pipeline. It serves as a reference target for validating automated build and execution workflows.
 
 ---
 
