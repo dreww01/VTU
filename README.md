@@ -668,6 +668,9 @@ SECRET_KEY=test-secret-key uv run python manage.py test
 SECRET_KEY=test-secret-key python manage.py test accounts
 SECRET_KEY=test-secret-key python manage.py test transactions
 SECRET_KEY=test-secret-key python manage.py test wallet
+
+# Run tests with verbose output
+SECRET_KEY=test-secret-key python manage.py test -v 2
 ```
 
 ### Test Isolation Architecture
