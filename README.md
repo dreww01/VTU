@@ -680,6 +680,9 @@ SECRET_KEY=test-secret-key python manage.py test -v 2
 
 # Run a specific test class
 SECRET_KEY=test-secret-key python manage.py test accounts.tests.RegistrationTests
+
+# Stop execution on first test failure
+SECRET_KEY=test-secret-key python manage.py test --failfast
 ```
 
 ### Test Isolation Architecture
