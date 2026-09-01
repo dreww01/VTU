@@ -667,6 +667,7 @@ SECRET_KEY=test-secret-key uv run python manage.py test
 # Run tests for a specific app
 SECRET_KEY=test-secret-key python manage.py test accounts
 SECRET_KEY=test-secret-key python manage.py test transactions
+SECRET_KEY=test-secret-key python manage.py test wallet
 ```
 
 ### Test Isolation Architecture
