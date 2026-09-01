@@ -694,7 +694,7 @@ SECRET_KEY=test-secret-key python manage.py test --failfast
 
 ## DSH Temporal Smoke Test
 
-This repository can be used to verify the DSH automated builder pipeline. It serves as a reliable reference target for validating automated build, test, and execution workflows across temporal runs and integration pipelines.
+This repository can be used to verify the DSH automated builder pipeline. It serves as a reliable reference target for validating automated build, test, and deployment execution workflows across temporal runs and integration pipelines.
 
 ---
 
