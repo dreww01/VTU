@@ -664,6 +664,9 @@ SECRET_KEY=test-secret-key python manage.py test
 # Or using uv
 SECRET_KEY=test-secret-key uv run python manage.py test
 
+# Or using virtual environment Python directly
+SECRET_KEY=test-secret-key .venv/bin/python manage.py test
+
 # Run tests for a specific app
 SECRET_KEY=test-secret-key python manage.py test accounts
 SECRET_KEY=test-secret-key python manage.py test transactions
