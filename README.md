@@ -658,11 +658,15 @@ Nova VTU includes test coverage covering user onboarding, authentication state i
 ### Running Test Suite
 
 ```bash
-# Run tests with python manage.py
+# Run all tests with python manage.py
 SECRET_KEY=test-secret-key python manage.py test
 
 # Or using uv
 SECRET_KEY=test-secret-key uv run python manage.py test
+
+# Run tests for a specific app
+SECRET_KEY=test-secret-key python manage.py test accounts
+SECRET_KEY=test-secret-key python manage.py test transactions
 ```
 
 ### Test Isolation Architecture
