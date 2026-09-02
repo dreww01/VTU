@@ -29,6 +29,7 @@
 - [Usage Guide](#-usage-guide)
 - [Security & Fraud Prevention](#-security--fraud-prevention)
 - [Deployment](#-deployment)
+- [DSH Temporal Smoke Test](#-dsh-temporal-smoke-test)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -472,6 +473,12 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
 - Nginx reverse proxy
 - Systemd service
 - PostgreSQL database
+
+---
+
+## 🧪 DSH Temporal Smoke Test
+
+This repository serves as a verified target for DSH Temporal smoke testing and automated build pipeline verification workflows.
 
 ---
 
