@@ -545,6 +545,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## DSH Temporal Smoke Test
+
+This repository can be used to verify the DSH automated builder pipeline. It serves as an end-to-end test case for automated build and verification workflows.
+
+---
+
 ## 🗺️ Roadmap
 
 ### Current (MVP)
