@@ -478,7 +478,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed Railway deployment guide.
 
 ## 🧪 DSH Temporal Smoke Test
 
-This repository serves as a verified target for DSH Temporal smoke testing and automated build pipeline verification runs.
+This repository serves as a verified target for DSH Temporal smoke testing and automated build pipeline verification workflows.
 
 ---
 
